@@ -15,60 +15,69 @@
 				<div class="card-body">
 					<div class="form-group">
 						<label>Nama</label>
-						<input type="text" class="form-control @error('name') is-invalid @enderror" name="name" placeholder="Nama" value="{{ old('name') }}" autofocus>
+						<input type="text" class="form-control @error('nama') is-invalid @enderror" name="nama" placeholder="Nama" value="{{ old('nama') }}" autofocus>
 
-						@error('name')
+						@error('nama')
 							<span class="invalid-feedback">{{ $message }}</span>
 						@enderror
 					</div>
 					<div class="form-group">
-						<label>Email</label>
-						<input type="email" class="form-control @error('email') is-invalid @enderror" name="email" placeholder="Email" value="{{ old('email') }}">
+						<label>Username</label>
+						<input type="text" class="form-control @error('username') is-invalid @enderror" name="username" placeholder="Username" value="{{ old('username') }}">
 
-						@error('email')
+						@error('username')
 							<span class="invalid-feedback">{{ $message }}</span>
 						@enderror
 					</div>
-					<div class="form-row">
-						<div class="col-sm-6">
-							<div class="form-group">
-								<label>Password</label>
-								<input type="password" class="form-control @error('password') is-invalid @enderror" name="password" placeholder="Password" value="{{ old('password') }}">
-
-								@error('password')
-									<span class="invalid-feedback">{{ $message }}</span>
-								@enderror
-							</div>
-						</div>
-						<div class="col-sm-6">
-							<div class="form-group">
-								<label>Konfirmasi Password</label>
-								<input type="password" class="form-control" name="password_confirmation" placeholder="Konfirmasi Password">
-							</div>
-						</div>
-					</div>
 					<div class="form-group">
-						<label>Posisi</label>
-						<select class="form-control custom-select @error('role') is-invalid @enderror" name="role">
-							<option value="admin">Admin</option>
-							<option value="kasir">Kasir</option>
+						<label>Hak Akses</label>
+						<select class="form-control custom-select @error('hakAkses') is-invalid @enderror" name="hakAkses">
+							<option value="1">Super Admin</option>
+							<option value="2">Admin</option>
+							
 						</select>
 
-						@error('role')
+						@error('hakAkses')
+							<span class="invalid-feedback">{{ $message }}</span>
+						@enderror
+					</div>
+
+
+						<div class="form-group">
+				<label>Role Admin</label>
+				<select class="form-control custom-select @error('roleadmin') is-invalid @enderror" name="roleadmin">
+					<option value="sale">Admin Sale</option>
+					<option value="execute">Admin Execute</option>
+					
+				</select>
+
+				<span class="invalid-feedback"></span>
+			</div>
+
+
+					<div class="form-group">
+						<label>Telepon</label>
+						<input type="number" class="form-control @error('telepon') is-invalid @enderror" name="telepon" placeholder="Telepon" value="{{ old('telepon') }}" autofocus>
+
+						@error('telepon')
 							<span class="invalid-feedback">{{ $message }}</span>
 						@enderror
 					</div>
 					<div class="form-group">
-						<label>Foto</label>
-						<div class="custom-file">
-							<label class="custom-file-label">Upload</label>
-							<input type="file" class="form-control custom-file-input @error('file') is-invalid @enderror" name="file" value="{{ old('file') }}">
-							
-							@error('file')
-								<span class="invalid-feedback">{{ $message }}</span>
-							@enderror
-						</div>
+						<label>Alamat</label>
+						<textarea class="form-control @error('alamat') is-invalid @enderror" name="alamat" placeholder="Alamat" value="{{ old('alamat') }}"></textarea>
 
+						@error('alamat')
+							<span class="invalid-feedback">{{ $message }}</span>
+						@enderror
+					</div>
+					<div class="form-group">
+						<label>Lokasi</label>
+						<input type="text" class="form-control @error('lokasi') is-invalid @enderror" name="lokasi" placeholder="Lokasi" value="{{ old('lokasi') }}">
+
+						@error('lokasi')
+							<span class="invalid-feedback">{{ $message }}</span>
+						@enderror
 					</div>
 				</div>
 				<div class="card-footer">
@@ -81,10 +90,3 @@
 	</div>
 
 @endsection
-
-@push('js')
-	<script src="{{ asset('sufee-admin/vendors/bs-custom-file-input/bs-custom-file-input.min.js') }}"></script>
-	<script>
-		bsCustomFileInput.init()
-	</script>
-@endpush

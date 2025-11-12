@@ -27,58 +27,49 @@ class LoginController extends Controller
 
 	public function login(LoginRequest $request): RedirectResponse
 	{
-		$credentials = $request->only('username', 'password');
-		$remember = $request->filled('remember');
 
-		if ($this->auth->login($credentials, $remember)) {
-	
-			$user = auth()->user();
+         $credentials = $request->only('username', 'password');
+         $remember = $request->filled('remember');
 
-		// Skip shift check for superadmin
-if ($user->hakAkses !== '1') {
-    $currentTime = now()->format('H:i:s');
-    
-    $shift = \App\Models\UserShift::join('shifts', 'shifts.id', '=', 'user_shifts.shift_id')
-        ->where('user_shifts.is_active', true)
-        ->where('user_shifts.user_id', $user->idUser)
-       // ->where('shifts.is_active', true)
-        ->whereTime('shifts.start_time', '<=', $currentTime)
-        ->whereTime('shifts.end_time', '>=', $currentTime)
-        ->select('user_shifts.*', 'shifts.name as shift_name', 'shifts.start_time', 'shifts.end_time')
-        ->first();
+    if ($this->auth->login($credentials, $remember)) {
 
-    // Store shift data in session for later retrieval
-    if ($shift) {
-        session(['user_shift' => $shift]);
-    }
-        
-    if (!$shift) {
-        auth()->logout();
-        
-        // Cek apakah user punya shift aktif tapi diluar jam
-        $activeShift = \App\Models\UserShift::join('shifts', 'shifts.id', '=', 'user_shifts.shift_id')
-            ->where('user_shifts.is_active', true)
-            ->where('user_shifts.user_id', $user->idUser)
-           // ->where('shifts.is_active', true)
-            ->select('shifts.name', 'shifts.start_time', 'shifts.end_time')
-            ->first();
-            
-        if ($activeShift) {
-            return back()->with('error', 
-                "Shift {$activeShift->name} hanya bisa diakses dari jam {$activeShift->start_time} sampai {$activeShift->end_time}. " .
-                "Saat ini jam: " . now()->format('H:i') . "."
-            );
-        } else {
-            return back()->with('error', 'Tidak ada shift aktif untuk user ini. Hubungi admin.');
+        $user = auth()->user();
+
+        // ✅ SUPERADMIN LANGSUNG MASUK TANPA SHIFT CHECK
+        if ($user->hakAkses === '1') {
+            return redirect('/')->with('success', 'Sukses Login (Superadmin)');
         }
+
+        // ✅ DETEKSI SHIFT BERDASARKAN JAM SAAT LOGIN
+        $currentTime = now()->format('H:i:s');
+
+        $shift = \App\Models\Shift::where('is_active', 1)
+            ->whereTime('start_time', '<=', $currentTime)
+            ->whereTime('end_time', '>=', $currentTime)
+            ->first();
+
+        // ✅ JIKA KETEMU SHIFT
+        if ($shift) {
+
+            // Simpan shift ke session
+            session([
+                'user_shift' => (object)[
+                    'shift' => $shift,
+                    'user' => $user
+                ]
+            ]);
+
+            return redirect('/')->with('success', 'Berhasil login & masuk shift: ' . $shift->name);
+        }
+
+        // ❌ JIKA TAK ADA SHIFT YANG SESUAI
+        auth()->logout();
+        return back()->with('error', 'Tidak ada shift yang aktif pada jam ini. Hubungi admin.');
     }
-}
-		
-			return redirect('/')->with('success', 'Sukses Login');
-		} else {
-			return back()->with('error', 'Password Salah');
-		}
-	}
+
+    return back()->with('error', 'Password Salah');
+
+    }
 
 	public function logout(): RedirectResponse
 	{

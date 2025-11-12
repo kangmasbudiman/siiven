@@ -26,6 +26,7 @@ public function index()
 
 
     $user_shift = session('user_shift');
+    
     $iduser = $user_shift->user->idUser;
 
     // 1️⃣ Cari shift aktif milik user sendiri
@@ -233,10 +234,8 @@ $lastJoinedShift = ShiftMember::where('user_id', $iduser)
 
     public function store(Request $request)
     {
-
+     
       
-
-
         $validated = $request->validate([
                 'app_id' => 'required|exists:aplikasis,id',
                 'amount_due' => 'required|numeric|min:1',
@@ -251,7 +250,18 @@ $lastJoinedShift = ShiftMember::where('user_id', $iduser)
          ]);
 
          $app = Aplikasi::find($request->app_id);
-        if ($app) {
+
+        // ✅ Hitung coin qty
+        $coinQty = $validated['amount_due'] / $app->rate;
+
+        // ✅ Cek saldo stok sebelum diproses
+        if ($app->qty < $coinQty) {
+            return back()->with('error', 'Stok aplikasi tidak cukup untuk transaksi ini!')->withInput();
+        }
+
+
+
+         if ($app) {
             
             $app->qty -= $request->coin_qty;
             if ($app->qty < 0) $app->qty = 0; // biar gak minus
@@ -265,25 +275,32 @@ $lastJoinedShift = ShiftMember::where('user_id', $iduser)
             'user_id' => auth()->id(),
 
         ]);
-
-
-
-            $user_shift = session('user_shift');
+                        $user_shift = session('user_shift');
                         $iduser=$user_shift->user->idUser;
                         $activeShift = ShiftSession::where('status', 'ACTIVE')
                         ->where('opened_by', $iduser)
                         ->firstOrFail();
 
-                
+                        // ✅ Jika reseller, hitung diskon
+if ($validated['customer_type'] === "Reseller" && $validated['reseller_id']) {
+    $reseller = Reseller::find($validated['reseller_id']);
+    if ($reseller && $reseller->diskon > 0) {
+        $diskonPersen = $reseller->diskon; // contoh: 10 berarti 10%
+        $diskonNominal = ($validated['amount_due'] * $diskonPersen) / 100;
+        $validated['amount_due'] -= $diskonNominal; // Harga setelah diskon
+    }
+}
+
+
 
                         $application = Aplikasi::findOrFail($validated['app_id']);
-
-                        Transaction::create([
+                  Transaction::create([
                             ...$validated,
                             'shift_session_id' => $activeShift->id,
                             'admin_id' => auth()->id(),
                             'coin_type' => $application->coin_type,
                             'rate' => $application->rate,
+                            'diskon' => $diskonNominal,
                             'status' => 'PENDING',
                         ]);
 
@@ -409,48 +426,68 @@ $lastJoinedShift = ShiftMember::where('user_id', $iduser)
         ->firstOrFail();
 
 
-    $application = Aplikasi::findOrFail($validated['app_id']);
+            $application = Aplikasi::findOrFail($validated['app_id']);
+
+                        // ✅ Jika reseller, hitung diskon
+            if ($validated['customer_type'] === "Reseller" && $validated['reseller_id']) {
+                $reseller = Reseller::find($validated['reseller_id']);
+                if ($reseller && $reseller->diskon > 0) {
+                    $diskonPersen = $reseller->diskon; // contoh: 10 berarti 10%
+                    $diskonNominal = ($validated['amount_due'] * $diskonPersen) / 100;
+                    $validated['amount_due'] -= $diskonNominal; // Harga setelah diskon
+                }
+            }
 
 
 
+            $transaction->update([
+                ...$validated,
+                'shift_session_id' => $activeShift->id,
+                'admin_id' => auth()->id(),
+                'coin_type' => $application->coin_type,
+                'rate' => $application->rate,
+                'diskon' => $diskonNominal,
+                'status' => 'PENDING',
+            ]);
+            // === Sesuaikan STOK === //
+            $app = Aplikasi::find($app_id);
 
-    $transaction->update([
-        ...$validated,
-        'shift_session_id' => $activeShift->id,
-        'admin_id' => auth()->id(),
-        'coin_type' => $application->coin_type,
-        'rate' => $application->rate,
-        'status' => 'PENDING',
-    ]);
-    // === Sesuaikan STOK === //
-    $app = Aplikasi::find($app_id);
+               // ✅ Hitung coin qty
+        $coinQty = $validated['amount_due'] / $app->rate;
 
-    if ($app) {
-        // Kembalikan stok lama, potong stok baru
-        $app->qty = $app->qty + $old_qty - $new_qty;
-
-        // Mencegah stok minus
-        if ($app->qty < 0) {
-            $app->qty = 0;
+        // ✅ Cek saldo stok sebelum diproses
+        if ($app->qty < $coinQty) {
+            return back()->with('error', 'Stok aplikasi tidak cukup untuk transaksi ini!')->withInput();
         }
 
-        $app->save();
-    }
 
-    
-      StockHistory::create([
-            'app_id' => $app->id,
-            'amount' => $request->coin_qty,
-            'type' => 'EDIT TRANSACTION',
-            'note' => 'Edit Transaksi dari ' . $old_qty . ' menjadi ' . $new_qty,
-            'user_id' => auth()->id(),
-      ]);
 
-    return back()->with('success', 'Transaksi berhasil disimpan!');
-    } catch (\Exception $e) {
-       
-        return back()->with('error', 'Gagal memperbarui transaksi: ' . $e->getMessage());
-    }
+            if ($app) {
+                // Kembalikan stok lama, potong stok baru
+                $app->qty = $app->qty + $old_qty - $new_qty;
+
+                // Mencegah stok minus
+                if ($app->qty < 0) {
+                    $app->qty = 0;
+                }
+
+                $app->save();
+            }
+
+            
+            StockHistory::create([
+                    'app_id' => $app->id,
+                    'amount' => $request->coin_qty,
+                    'type' => 'EDIT TRANSACTION',
+                    'note' => 'Edit Transaksi dari ' . $old_qty . ' menjadi ' . $new_qty,
+                    'user_id' => auth()->id(),
+            ]);
+
+            return back()->with('success', 'Transaksi berhasil disimpan!');
+            } catch (\Exception $e) {
+            
+                return back()->with('error', 'Gagal memperbarui transaksi: ' . $e->getMessage());
+            }
     }
 
     public function destroy( $id)
@@ -497,51 +534,51 @@ $lastJoinedShift = ShiftMember::where('user_id', $iduser)
 
 
 
-public function laporanperiode(Request $request){
+    public function laporanperiode(Request $request){
 
-   $from = $request->from;
-    $to = $request->to;
+    $from = $request->from;
+        $to = $request->to;
 
-    $query = ShiftSession::query();
+        $query = ShiftSession::query();
 
-    if ($from && $to) {
-        $query->whereBetween('start_time', [$from . " 00:00:00", $to . " 23:59:59"]);
+        if ($from && $to) {
+            $query->whereBetween('start_time', [$from . " 00:00:00", $to . " 23:59:59"]);
+        }
+
+        $shifts = $query->orderBy('start_time', 'desc')->get();
+
+        return view('transaction.laporan-periode', compact('shifts', 'from', 'to'));
+            
     }
 
-    $shifts = $query->orderBy('start_time', 'desc')->get();
 
-    return view('transaction.laporan-periode', compact('shifts', 'from', 'to'));
-        
-}
+    public function laporanPeriodePdf(Request $request)
+    {
 
+    
+        $from = $request->from;
+        $to = $request->to;
 
-public function laporanPeriodePdf(Request $request)
-{
+        $shifts = ShiftSession::whereBetween('start_time', [$from." 00:00:00", $to." 23:59:59"])
+            ->orderBy('start_time', 'desc')
+            ->get();
 
-   
-    $from = $request->from;
-    $to = $request->to;
+        $pdf = \PDF::loadView('transaction.laporanperiodePdf', compact('shifts', 'from', 'to'))->setPaper('A4', 'portrait');
 
-    $shifts = ShiftSession::whereBetween('start_time', [$from." 00:00:00", $to." 23:59:59"])
-        ->orderBy('start_time', 'desc')
-        ->get();
+        return $pdf->stream('Laporan-Shift-'.$from.'-sampai-'.$to.'.pdf');
 
-    $pdf = \PDF::loadView('transaction.laporanperiodePdf', compact('shifts', 'from', 'to'))->setPaper('A4', 'portrait');
-
-    return $pdf->stream('Laporan-Shift-'.$from.'-sampai-'.$to.'.pdf');
-
-}
+    }
 
 
 
-public function reload(Request $request){
+    public function reload(Request $request){
 
-  //  $app_id = $request->app_id;
-    $application = Aplikasi::findOrFail($app_id);
+    //  $app_id = $request->app_id;
+        $application = Aplikasi::findOrFail($app_id);
 
-    return view('transaction.reload', compact('application'));
+        return view('transaction.reload', compact('application'));
 
-}
+    }
 
 
 

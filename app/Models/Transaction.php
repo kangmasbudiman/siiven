@@ -31,6 +31,7 @@ class Transaction extends Model
         'processed_by',
         'processed_datetime', 
         'process_notes',
+        'diskon',
     ];
 
     protected $casts = [

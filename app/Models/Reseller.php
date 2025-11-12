@@ -19,6 +19,7 @@ class Reseller extends Model
         'address',
         'initial_balance',
         'notes',
+        'diskon',
         'is_active'
     ];
 

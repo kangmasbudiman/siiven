@@ -66,15 +66,22 @@
                                 </div>
                             </div>
                         </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="diskon" class="form-label">Diskon (%)</label>
+                                <input type="number" class="form-control" id="diskon" name="diskon" value="0" min="0" max="100" step="1">
+                                <div class="form-text">Diskon yang diberikan kepada reseller dalam persentase</div>
+                            </div>
+                        </div>
                     </div>
+
 
                     <div class="mb-3">
                         <label for="notes" class="form-label">Keterangan</label>
                         <textarea class="form-control" id="notes" name="notes" rows="2" placeholder="Keterangan tambahan tentang reseller"></textarea>
                     </div>
 
-                    <hr>
-                    <h6 class="mb-3"><i class="fas fa-tags me-2"></i>Harga Khusus per Aplikasi</h6>
+                 
                   
                 </div>
                 <div class="modal-footer">
@@ -103,8 +110,8 @@
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label for="edit_name" class="form-label">Nama Reseller *</label>
-                                <input type="text" class="form-control" id="edit_name" name="namereseller" required>
+                                <label for="edit_namereseller" class="form-label">Nama Reseller *</label>
+                                <input type="text" class="form-control" id="edit_namereseller" name="namereseller" required>
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -153,6 +160,13 @@
                                     <input class="form-check-input" type="checkbox" id="edit_is_active" name="is_active" value="1">
                                     <label class="form-check-label" for="edit_is_active">Active</label>
                                 </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="edit_diskon" class="form-label">Diskon (%)</label>
+                                <input type="number" class="form-control" id="edit_diskon" name="diskon" value="0" min="0" max="100" step="1">
+                                <div class="form-text">Diskon yang diberikan kepada reseller dalam persentase</div>
                             </div>
                         </div>
                     </div>

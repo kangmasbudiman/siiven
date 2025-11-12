@@ -181,6 +181,7 @@ class ShiftSessionController extends Controller
         } catch (\Exception $e) {
             return redirect()->back()->with('error', '❌ Gagal menghapus shift: ' . $e->getMessage());
         }
+        
     }
 
     public function joinShift(Request $request)

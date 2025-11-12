@@ -134,7 +134,18 @@ class UserShiftController extends Controller
      */
     public function destroy($id)
     {
-        //
+        // Cari user shift berdasarkan ID
+        $userShift = UserShift::findOrFail($id);
+
+        try {
+            // Hapus user shift
+            $userShift->delete();
+            return redirect()->route('usershift.index')
+                ->with('success', 'User shift berhasil dihapus');
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->with('error', 'Gagal menghapus user shift: ' . $e->getMessage());
+        }
     }
 
 

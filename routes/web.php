@@ -68,7 +68,8 @@ Route::middleware('auth')->group(function ()
 		{
 			Route::get('/', 'ResellerController@index')->name('index');
 			Route::post('/store', 'ResellerController@store')->name('store');
-			Route::put('/{id}', 'ResellerController@update')->name('update');
+			//Route::put('/{id}', 'ResellerController@update')->name('update');
+			Route::put('/{reseller}', 'ResellerController@update')->name('update');
 			Route::delete('/{reseller}/destroy', 'ResellerController@destroy')->name('destroy');
 			Route::patch('/{reseller}/toggle-status', 'ResellerController@toggleStatus')->name('toggle-status');
 			Route::get('/{reseller}/details', 'ResellerController@getResellerDetails')->name('details');

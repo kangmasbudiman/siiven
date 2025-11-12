@@ -48,7 +48,8 @@ class ResellerController extends Controller
             'initial_balance' => 'nullable|numeric|min:0',
             'notes' => 'nullable|string|max:500',
             'special_prices' => 'nullable|array',
-            'special_prices.*' => 'nullable|numeric|min:0'
+            'special_prices.*' => 'nullable|numeric|min:0',
+            'diskon' => 'nullable|numeric|min:0|max:100'
         ]);
 
         try {
@@ -61,6 +62,7 @@ class ResellerController extends Controller
                 'address' => $request->address,
                 'initial_balance' => $request->initial_balance ?? 0,
                 'notes' => $request->notes,
+                'diskon' => $request->diskon ?? 0,
                 'is_active' => $request->has('is_active')
             ]);
 
@@ -106,6 +108,11 @@ class ResellerController extends Controller
      */
     public function update(Request $request, Reseller $reseller)
     {
+      
+
+        //dd($reseller);
+
+
        $request->validate([
             'namereseller' => 'required|string|max:100',
             'code' => 'nullable|string|max:20|unique:resellers,code,' . $reseller->id,
@@ -115,10 +122,15 @@ class ResellerController extends Controller
             'initial_balance' => 'nullable|numeric|min:0',
             'notes' => 'nullable|string|max:500',
             'special_prices' => 'nullable|array',
-            'special_prices.*' => 'nullable|numeric|min:0'
+            'special_prices.*' => 'nullable|numeric|min:0',
+            'diskon' => 'nullable|numeric|min:0|max:100'
         ]);
 
         try {
+
+
+             // $reseller = Reseller::findOrFail($request->id);
+
             // Update reseller
             $reseller->update([
                 'namereseller' => $request->namereseller,
@@ -128,8 +140,10 @@ class ResellerController extends Controller
                 'address' => $request->address,
                 'initial_balance' => $request->initial_balance ?? 0,
                 'notes' => $request->notes,
+                'diskon' => $request->diskon ?? 0,
                 'is_active' => $request->has('is_active')
             ]);
+
 
       
 

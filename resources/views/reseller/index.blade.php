@@ -23,7 +23,9 @@
                                 <th>Kode</th>
                                 <th>Nama Reseller</th>
                                 <th>Kontak</th>
+
                                 <th>Saldo Hutang</th>
+                                <th>Diskon(%)</th>
                                 <th>Status</th>
                                 <th>Aksi</th>
                             </tr>
@@ -53,6 +55,9 @@
                                     <strong>{{ $reseller->getFormattedBalanceAttribute() }}</strong>
                                 </td>
                                 <td class="text-center">
+                                    <strong>{{ $reseller->diskon }} %</strong>
+                                </td>
+                                <td class="text-center">
                                     @if($reseller->is_active)
                                         <span class="badge bg-success">Aktif</span>
                                     @else
@@ -64,11 +69,12 @@
                                         <button type="button" class="btn btn-info btn-sm" data-bs-toggle="modal"
                                             data-bs-target="#editResellerModal" 
                                             data-id="{{ $reseller->id }}"
-                                            data-name="{{ $reseller->name }}"
+                                            data-namereseller="{{ $reseller->namereseller }}"
                                             data-code="{{ $reseller->code }}"
                                             data-phone="{{ $reseller->phone }}"
                                             data-email="{{ $reseller->email }}"
                                             data-address="{{ $reseller->address }}"
+                                            data-diskon="{{ $reseller->diskon }}"
                                             data-initial_balance="{{ $reseller->initial_balance }}"
                                             data-notes="{{ $reseller->notes }}"
                                             data-is_active="{{ $reseller->is_active ? '1' : '0' }}"
@@ -141,7 +147,7 @@ $(document).ready(function() {
     $('#editResellerModal').on('show.bs.modal', function (event) {
         var button = $(event.relatedTarget);
         var id = button.data('id');
-        var name = button.data('name');
+        var namereseller = button.data('namereseller');
         var code = button.data('code');
         var phone = button.data('phone');
         var email = button.data('email');
@@ -150,10 +156,11 @@ $(document).ready(function() {
         var notes = button.data('notes');
         var is_active = button.data('is_active');
         var applications = button.data('applications');
+        var diskon = button.data('diskon');
 
         var modal = $(this);
         modal.find('#edit_id').val(id);
-        modal.find('#edit_name').val(name);
+        modal.find('#edit_namereseller').val(namereseller);
         modal.find('#edit_code').val(code);
         modal.find('#edit_phone').val(phone);
         modal.find('#edit_email').val(email);
@@ -161,6 +168,7 @@ $(document).ready(function() {
         modal.find('#edit_initial_balance').val(initial_balance);
         modal.find('#edit_notes').val(notes);
         modal.find('#edit_is_active').prop('checked', is_active == '1');
+        modal.find('#edit_diskon').val(diskon);
 
         // Set special prices for applications
         if (applications) {
@@ -173,7 +181,9 @@ $(document).ready(function() {
         }
 
         // Update form action
-        modal.find('#editResellerForm').attr('action', '/reseller/' + id);
+        //modal.find('#editResellerForm').attr('action', '/reseller/' + id);
+        modal.find('#editResellerForm').attr('action', "{{ url('reseller') }}/" + id);
+
     });
 });
 

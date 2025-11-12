@@ -45,6 +45,7 @@ class ShiftController extends Controller
                 'name' => 'required|string|max:255',
                 'start_time' => 'required|date_format:H:i',
                 'end_time' => 'required|date_format:H:i',
+                'is_active' => 'nullable|boolean',
             ]);
           Shift::create($validatedData);
 
@@ -54,6 +55,7 @@ class ShiftController extends Controller
                 ->with('error', '❌ Gagal menambahkan shift: ' . $e->getMessage())
                 ->withInput();
         }
+
 
        
 
@@ -77,6 +79,7 @@ class ShiftController extends Controller
         'name' => 'nullable|string|max:255',
         'start_time' => 'nullable|date_format:H:i',
         'end_time' => 'nullable|date_format:H:i|after:start_time',
+        'is_active' => 'nullable|boolean',
     ]);
 
     $shift = Shift::findOrFail($request->id);

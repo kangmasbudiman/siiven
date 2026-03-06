@@ -13,6 +13,12 @@
 <link rel="stylesheet" href="{{ asset('sufee-admin/assets/css/style.css') }}">
 <link rel="stylesheet" href="{{ asset('css/app.css') }}">
 
+{{-- Tom Select CSS --}}
+<link href="https://cdn.jsdelivr.net/npm/tom-select/dist/css/tom-select.css" rel="stylesheet">
+
+
+
+
 <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,600,700,800' rel='stylesheet' type='text/css'>
 
    <!-- DataTables CSS -->
@@ -24,4 +30,10 @@
 
 <livewire:styles />
 
+
+
+
+
 @stack('css')
+{{-- Tom Select JS --}}
+<script src="https://cdn.jsdelivr.net/npm/tom-select/dist/js/tom-select.complete.min.js"></script>

@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\View\View;
+use App\Models\Ruangan;
 
 class UserController extends Controller
 {
@@ -30,7 +31,10 @@ class UserController extends Controller
      */
     public function index(): View
     {
-        return view('user.index');
+        
+        $ruangans = Ruangan::orderBy('nama_ruangan')->get();
+
+    return view('user.index', compact('ruangans'));
     }
 
     /**
@@ -40,7 +44,9 @@ class UserController extends Controller
      */
     public function create()
     {
-        return view('user.create');
+        $ruangans = Ruangan::all();
+        return view('user.create', compact('ruangans'));
+
     }
 
     /**

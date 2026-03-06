@@ -49,5 +49,26 @@ class AuthServiceProvider extends ServiceProvider
         {
             return $user->hakAkses == '1' || $user->hakAkses == '3';
         });
+
+        // Gates untuk approval usulan pembelian
+        Gate::define('canApproveLevel1', function ($user) {
+            return $user->approval_level == 1 || $user->hakAkses == '1';
+        });
+
+        Gate::define('canApproveLevel2', function ($user) {
+            return $user->approval_level == 2 || $user->hakAkses == '1';
+        });
+
+        Gate::define('canApproveLevel3', function ($user) {
+            return $user->approval_level == 3 || $user->hakAkses == '1';
+        });
+
+        Gate::define('canApproveLevel4', function ($user) {
+            return $user->approval_level == 4 || $user->hakAkses == '1';
+        });
+
+        Gate::define('isApprover', function ($user) {
+            return !empty($user->approval_level) || $user->hakAkses == '1';
+        });
     }
 }

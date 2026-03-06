@@ -22,9 +22,9 @@
 							<th>Nama</th>
 							<th>Alamat</th>
 							<th>Telepon</th>
-							<th>Lokasi</th>
+							<th>Ruangan</th>
 							<th>Status</th>
-							<th>Role</th>
+							<th>Level Approval</th>
 							<th>Action</th>
 						</tr>
 					</thead>
@@ -62,30 +62,46 @@
 				<select class="form-control custom-select @error('hakAkses') is-invalid @enderror" name="hakAkses">
 					<option value="1">Super Admin</option>
 					<option value="2">Admin</option>
-					
+					<option value="3">Gudang</option>
 				</select>
-
 				<span class="invalid-feedback"></span>
 			</div>
 
-				<div class="form-group">
-				<label>Role Admin</label>
-				<select class="form-control custom-select @error('roleadmin') is-invalid @enderror" name="roleadmin">
-					<option value="">Pilih Role Admin</option>
-					<option value="sale">Admin Sale</option>
-					<option value="execute">Admin Execute</option>
-					
+			<div class="form-group">
+				<label>Level Approval Usulan Pembelian</label>
+				<select class="form-control custom-select" name="approval_level">
+					<option value="">-- Tidak Ada (Ka. Unit / Pembuat Usulan) --</option>
+					<option value="1">Level 1 - Pemeriksa (Diperiksa Oleh)</option>
+					<option value="2">Level 2 - Konfirmator (Dikonfirmasi Oleh)</option>
+					<option value="3">Level 3 - Diketahui Oleh</option>
+					<option value="4">Level 4 - Disetujui Oleh</option>
 				</select>
-
+				<small class="text-muted">Peran dalam persetujuan usulan pembelian</small>
 				<span class="invalid-feedback"></span>
 			</div>
+			<div class="form-group">
+				<label>Jabatan</label>
+				<input type="text" class="form-control" name="jabatan" placeholder="cth: Kabag Umum, Kabid Pelayanan, Direktur...">
+				<small class="text-muted">Ditampilkan di PDF usulan pembelian</small>
+				<span class="invalid-feedback"></span>
+			</div>
+
+
 
 
 			<div class="form-group">
-				<label>Lokasi</label>
-				<input type="text" class="form-control @error('lokasi') is-invalid @enderror" name="lokasi" placeholder="Lokasi" value="{{ old('lokasi') }}">
-
-				<span class="invalid-feedback"></span>
+				
+                            <label>Ruangan</label>
+                            <select name="ruangan_id" class="form-control">
+                                <option value="">Pilih Ruangan</option>
+                                @foreach($ruangans as $ruangan)
+                                    <option value="{{ $ruangan->id }}">
+                                        {{ $ruangan->nama_ruangan }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            <span class="invalid-feedback"></span>
+                        
 			</div>
 			<div class="form-group">
 				<label>Telepon</label>

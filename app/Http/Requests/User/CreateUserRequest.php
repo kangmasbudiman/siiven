@@ -32,12 +32,14 @@ class CreateUserRequest extends FormRequest
     public function rules()
     {
         return [
-            'nama' => 'required|string|unique:user',
-            'username' => 'required|string|unique:user',
-            'alamat' => 'required|string',
-            'telepon' => 'required|numeric',
-            'password' => 'required|string',
-            'hakAkses' => 'required|in:1,2,3',
+            'nama'           => 'required|string|unique:user',
+            'username'       => 'required|string|unique:user',
+            'alamat'         => 'required|string',
+            'telepon'        => 'required|numeric',
+            'password'       => 'required|string',
+            'hakAkses'       => 'required|in:1,2,3',
+            'approval_level' => 'nullable|in:1,2,3,4',
+            'jabatan'        => 'nullable|string|max:100',
         ];
     }
 }

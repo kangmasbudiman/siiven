@@ -23,6 +23,7 @@ class LoginController extends Controller
 	public function showLoginForm(): View
 	{
 		return view('auth.login');
+        
 	}
 
 	public function login(LoginRequest $request): RedirectResponse
@@ -38,6 +39,11 @@ class LoginController extends Controller
         // ✅ SUPERADMIN LANGSUNG MASUK TANPA SHIFT CHECK
         if ($user->hakAkses === '1') {
             return redirect('/')->with('success', 'Sukses Login (Superadmin)');
+        }
+
+        // ✅ APPROVER (Kabag/Direktur/Ka.Keuangan/Bendahara) LANGSUNG MASUK TANPA SHIFT
+        if ($user->approval_level) {
+            return redirect('/')->with('success', 'Sukses Login (' . ['','Pemeriksa','Direktur','Ka. Keuangan','Bendahara'][$user->approval_level] . ')');
         }
 
         // ✅ DETEKSI SHIFT BERDASARKAN JAM SAAT LOGIN

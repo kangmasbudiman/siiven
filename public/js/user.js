@@ -1,5 +1,5 @@
 jQuery(function ($) {
-	
+
 	const table = $('table').DataTable({
 		serverSide: true,
 		processing: true,
@@ -16,31 +16,34 @@ jQuery(function ($) {
 			{ data: 'nama' },
 			{ data: 'alamat' },
 			{ data: 'telepon' },
-			{ data: 'lokasi' },
-			
+			{
+				data: 'nama_ruangan',
+				name: 'ruangans.nama_ruangan'
+			},
 			{
 				data: 'hakAkses',
 				render: data => {
 					const badges = [
-						{
-							color: 'primary',
-							text: 'super admin'
-						},
-						{
-							color: 'warning',
-							text: 'admin'
-						},
-						{
-							color: 'danger',
-							text: 'gudang'
-						}
+						{ color: 'primary', text: 'super admin' },
+						{ color: 'warning', text: 'admin' },
+						{ color: 'danger',  text: 'gudang' }
 					]
 					const badge = badges[data-1]
-
 					return `<span class="badge badge-${badge.color}">${badge.text}</span>`
 				}
 			},
-{ data: 'roleadmin' },
+			{
+				data: 'approval_level',
+				render: data => {
+					const labels = {
+						'1': '<span class="badge badge-info">Lv.1 - Pemeriksa</span>',
+						'2': '<span class="badge badge-warning">Lv.2 - Konfirmator</span>',
+						'3': '<span class="badge badge-secondary">Lv.3 - Kabag/Kabid</span>',
+						'4': '<span class="badge badge-success">Lv.4 - Direktur</span>',
+					}
+					return data ? (labels[String(data)] || '-') : '<span class="text-muted">-</span>'
+				}
+			},
 			{
 				data: 'action',
 				orderable: false,
@@ -83,7 +86,7 @@ jQuery(function ($) {
 		form.reset()
 	}
 
-	const edit = ({idUser, nama, username, alamat, telepon, hakAkses, lokasi, roleadmin}) => {
+	const edit = ({idUser, nama, username, alamat, telepon, hakAkses, ruangan_id, approval_level, jabatan}) => {
 		const modal = $('.modal')
 		const form = modal.find('form')[0]
 		const url = updateUrl.replace(':id', idUser)
@@ -97,8 +100,9 @@ jQuery(function ($) {
 		modal.find('[name=telepon]').val(telepon)
 		modal.find('[name=alamat]').val(alamat)
 		modal.find('[name=hakAkses]').val(hakAkses)
-		modal.find('[name=lokasi]').val(lokasi)
-		modal.find('[name=roleadmin]').val(roleadmin)
+		modal.find('[name=ruangan_id]').val(ruangan_id)
+		modal.find('[name=approval_level]').val(approval_level || '')
+		modal.find('[name=jabatan]').val(jabatan || '')
 
 		modal.modal('show')
 	}

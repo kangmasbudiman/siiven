@@ -16,9 +16,16 @@ class Dashboard
      */
     public function handle(Request $request, Closure $next)
     {
-        if ($request->user()->can('isGudang')) {
+        $user = $request->user();
+
+        // Approver (Kabag, Direktur, Ka.Keuangan, Bendahara) langsung ke dashboard mereka
+        if ($user->approval_level) {
+            return $next($request);
+        }
+
+        if ($user->can('isGudang')) {
             return redirect()->route('stuff.index');
-        } else if ($request->user()->can('isKasir')) {
+        } else if ($user->can('isKasir')) {
             return redirect()->route('transaction.index');
         }
 

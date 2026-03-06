@@ -11,6 +11,8 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\ShiftMember;
 use App\Models\Bank;
 use App\Models\StockHistory;
+use App\Models\StockBarang;
+
 class TransactionController extends Controller
 {
 
@@ -23,12 +25,13 @@ public function index()
 {
 
    
+    //dd('halaman dashboard user');
 
 
     $user_shift = session('user_shift');
-    
+    $user = auth()->user();
     $iduser = $user_shift->user->idUser;
-
+        $ruanganId = $user->ruangan_id;
     // 1️⃣ Cari shift aktif milik user sendiri
     $activeShift = \App\Models\ShiftSession::where('status', 'ACTIVE')
         ->where('opened_by', $iduser)
@@ -37,89 +40,57 @@ public function index()
        
 
         
+    $ruangan=$user->ruangan->nama_ruangan;
 
-   // 2) Cek apakah user sedang join shift orang lain
-$joinedShift = ShiftMember::where('user_id', $iduser)
-    ->whereHas('session', fn($q) => $q->where('status', 'ACTIVE'))
-    ->with('session')
-    ->first();
+        // Query dasar stok ruangan
+        $stokQuery = StockBarang::where('ruangan_id', $ruanganId);
 
-if ($joinedShift) {
-    $activeShift = $joinedShift->session; // <- ini yang menentukan tampilan di dashboard
-}
-
-    // 4) Ambil shift terakhir yang pernah diikuti (untuk tombol Rejoin)
-    $lastJoinedShift = ShiftMember::where('user_id', $iduser)
-        ->latest()
-        ->with('session')
-        ->first();
-
-
-    // 4️⃣ Ambil semua shift aktif (untuk daftar join)
-    $activeShifts = \App\Models\ShiftSession::where('status', 'ACTIVE')
-        ->with('openedBy')
-        ->orderBy('start_time', 'desc')
-        ->get();
-
-    // 🧩 Cek transaksi hanya kalau user aktif di shift
-    $pendingTransactions = $completedTransactions = $newTransactions = collect();
-    if ($activeShift) {
-        $pendingTransactions = Transaction::with('application')
-            ->where('shift_session_id', $activeShift->id)
-            ->where('status', 'PENDING')
-            ->get();
-
-        $completedTransactions = Transaction::with('application')
-            ->where('shift_session_id', $activeShift->id)
-            ->where('status', 'DONE')
-            ->whereDate('created_at', today())
-            ->get();
-
-        $newTransactions = Transaction::with('application')
-            ->where('shift_session_id', $activeShift->id)
-            ->where('status', 'PENDING')
-            ->where('admin_id', $iduser)
-            ->get();
-    }
+          // Jumlah jenis barang
+            $totalJenisBarang= $stokQuery->distinct('barang_id')->count('barang_id');
+          
+         $totalStok = StockBarang::where('ruangan_id', $ruanganId)
+    ->sum('jumlah');
 
 
 
-        
 
-// jika user TIDAK punya shift aktif sendiri, tapi pernah join shift yang masih ACTIVE → pakai itu
-//if (!$activeShift && $lastJoinedShift && $lastJoinedShift->session && $lastJoinedShift->session->status === 'ACTIVE') {
-//    $activeShift = $lastJoinedShift->session;
-//}
-
-
-    $applications = Aplikasi::active()->get();
-    $bankAccounts = \App\Models\Bank::all();
-    $resellers = Reseller::active()->get();
-
-$lastJoinedShift = ShiftMember::where('user_id', $iduser)
-    ->whereHas('session', fn($q) => $q->where('status', 'ACTIVE'))
-    ->orderBy('id', 'desc')
-    ->with('session.openedBy')
-    ->first();
+            // Barang rusak (contoh kondisi != Baik)
+            $totalRusak = StockBarang::where('ruangan_id', $ruanganId)
+                ->whereHas('kondisi', function ($q) {
+                    $q->where('nama_kondisi', '!=', 'Baik');
+                })
+                ->sum('jumlah');
+               
 
 
+            // Barang menipis (threshold sederhana <= 5)
+            $stokMenipis = StockBarang::where('ruangan_id', $ruanganId)
+                ->where('jumlah', '<=', 5)
+                ->count();
+           
+            // Data stok terakhir
+            $stokTerbaru = StockBarang::with('barang')
+                ->where('ruangan_id', $ruanganId)
+                ->orderBy('updated_at', 'desc')
+                ->limit(5)
+                ->get();
 
+             
 
 
     return view('homeAdmin', compact(
         'user_shift',
-        'activeShift',
-        'joinedShift',
-        'lastJoinedShift', 
-        
-        'activeShifts',
-        'pendingTransactions',
-        'completedTransactions',
-        'newTransactions',
-        'applications',
-        'bankAccounts',
-        'resellers',
+        'ruangan',
+        'totalJenisBarang',
+        'totalStok',
+        'totalRusak',
+        'stokMenipis',
+        'stokTerbaru',
+       
     ));
+
+
+
 }
 
 

@@ -12,8 +12,8 @@
             <div class="col-md-3 mb-3">
                 <div class="card text-white" style="background: #1E88E5;">
                     <div class="card-body">
-                        <h6>Total Transaksi Hari Ini</h6>
-                        <h2>{{ $totalTransactionsToday }}</h2>
+                        <h6>Total Ruangan</h6>
+                        <h2>{{ $totalRuangan }}</h2>
                         <i class="fa fa-exchange fa-2x float-right"></i>
                     </div>
                 </div>
@@ -22,9 +22,9 @@
             <div class="col-md-3 mb-3">
                 <div class="card text-white" style="background: #D84315;">
                     <div class="card-body">
-                        <h6>Total Outstanding (Kasbon)</h6>
-                        <h2>Rp {{ number_format($totalOutstanding, 0, ',', '.') }}</h2>
-                        <i class="fa fa-money fa-2x float-right"></i>
+                        <h6>Total Barang</h6>
+                        <h2>{{ $totalBarang }}</h2>
+                        <i class="fa fa-exchange fa-2x float-right"></i>
                     </div>
                 </div>
             </div>
@@ -32,9 +32,9 @@
             <div class="col-md-3 mb-3">
                 <div class="card text-white" style="background: #8E24AA;">
                     <div class="card-body">
-                        <h6>Total Reseller Aktif</h6>
-                        <h2>{{ $totalResellers }}</h2>
-                        <i class="fa fa-users fa-2x float-right"></i>
+                        <h6>Total Stok</h6>
+                        <h2>{{ $totalStok }}</h2>
+                        <i class="fa fa-exchange fa-2x float-right"></i>
                     </div>
                 </div>
             </div>
@@ -42,106 +42,75 @@
             <div class="col-md-3 mb-3">
                 <div class="card text-white" style="background: #4E73DF;">
                     <div class="card-body">
-                        <h6>Total Akun Pembayaran</h6>
-                        <h2>{{ $totalBankAccounts }}</h2>
-                        <i class="fa fa-bank fa-2x float-right"></i>
+                        <h6>Total Barang Rusak</h6>
+                        <h2>{{ $barangRusak }}</h2>
+                        <i class="fa fa-exchange fa-2x float-right"></i>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="card shadow-sm mb-4">
-            <div class="card-header bg-light">
-                <strong>🧾 10 Transaksi Terbaru</strong>
-            </div>
-            <div class="card-body table-responsive">
-                <table class="table table-striped table-sm">
-                    <thead class="thead-light">
-                        <tr>
-                            <th>Aplikasi</th>
-                            <th>Qty</th>
-                            <th>Total</th>
-                            <th>Status</th>
-                            <th>Waktu</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse ($recentTransactions as $trx)
-                            <tr>
-                                <td>{{ $trx->application->nameaplication }}</td>
-                                <td>{{ $trx->coin_qty }}</td>
-                                <td>Rp {{ number_format($trx->amount_due, 0, ',', '.') }}</td>
-                                <td>
-                                    <span
-                                        class="badge 
-                            @if ($trx->status == 'DONE') badge-success
-                            @elseif($trx->status == 'PENDING') badge-warning
-                            @else badge-danger @endif
-                        ">
-                                        {{ $trx->status }}
-                                    </span>
-                                </td>
-                                <td>{{ $trx->created_at->format('d M H:i') }}</td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="5" class="text-center text-muted">Belum ada transaksi</td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-        </div>
 
 
 
 
-        <div class="row">
 
-    <!-- Grafik Transaksi -->
-    <div class="col-md-6">
-        <div class="card shadow-sm mb-4 h-100">
-            <div class="card-header bg-light">
-                <strong>📊 Grafik Transaksi 7 Hari Terakhir</strong>
-            </div>
+      <div class="row mt-3">
+
+    {{-- CHART --}}
+    <div class="col-md-8 mb-3">
+        <div class="card h-100">
             <div class="card-body">
-                <canvas id="chartTransaksi" height="180"></canvas>
+                <h6 class="mb-3">Data Barang Per Ruangan</h6>
+
+                <div style="height:300px">
+                    <canvas id="chartTransaksi"></canvas>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Shift Aktif -->
-    <div class="col-md-6">
-        <div class="card shadow-sm mb-4 h-100">
-            <div class="card-header bg-light">
-                <strong>🕒 Shift yang Aktif</strong>
+    {{-- TABEL STOK MENIPIS --}}
+    <div class="col-md-4 mb-3">
+        <div class="card h-100">
+            <div class="card-header bg-white">
+                <h6 class="mb-0 text-danger">
+                    <i class="fa fa-exclamation-triangle me-1"></i>
+                    Stok Menipis
+                </h6>
             </div>
-            <div class="card-body p-0">
 
-                <ul class="list-group list-group-flush">
-
-                    @forelse ($activeShift as $shift)
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            <div>
-                                <strong>{{ $shift->session_code ?? '-' }}</strong><br>
-                                <small class="text-muted">
-                                    Dibuka oleh: {{ $shift->openedBy->nama ?? '-' }}
-                                </small><br>
-                                <small class="text-muted">
-                                    Mulai: {{ $shift->start_time->format('d M Y, H:i') }}
-                                </small>
-                            </div>
-                            <span class="badge badge-success px-3 py-2">Aktif</span>
-                        </li>
-                    @empty
-                        <li class="list-group-item text-muted text-center">
-                            Tidak ada shift aktif.
-                        </li>
-                    @endforelse
-
-                </ul>
-
+            <div class="table-responsive">
+                <table class="table table-sm table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Ruangan</th>
+                            <th>Barang</th>
+                            <th class="text-center">Qty</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($stokMenipis as $stok)
+                        <tr>
+                            <td>{{ $stok->ruangan->nama_ruangan }}</td>
+                            <td>{{ $stok->barang->nama_barang }}</td>
+                            <td class="text-center">
+                                <span class="badge bg-danger">
+                                    {{ $stok->jumlah }}
+                                </span>
+                            </td>
+                        </tr>
+                        @empty
+                        <tr>
+                            <td colspan="3" class="text-center text-muted py-3">
+                                Tidak ada stok menipis
+                            </td>
+                        </tr>
+                        @endforelse
+                    </tbody>
+                </table>
             </div>
+
         </div>
     </div>
 
@@ -151,50 +120,57 @@
 
 
 
-            @section('scripts')
-                <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-                <script>
-                    document.addEventListener("DOMContentLoaded", () => {
+    @section('scripts')
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-                        const ctx = document.getElementById('chartTransaksi').getContext('2d');
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
 
-                        const chart = new Chart(ctx, {
-                            type: 'line',
-                            data: {
-                                labels: {!! json_encode(array_keys($chartData->toArray())) !!},
-                                datasets: [{
-                                    label: 'Jumlah Transaksi',
-                                    data: {!! json_encode(array_values($chartData->toArray())) !!},
-                                    fill: true,
-                                    backgroundColor: 'rgba(0, 123, 255, 0.25)',
-                                    borderColor: '#007bff',
-                                    borderWidth: 2,
-                                    tension: 0.35,
-                                    pointRadius: 4,
-                                    pointHoverRadius: 6,
-                                    pointBackgroundColor: '#007bff'
-                                }]
-                            },
-                            options: {
-                                responsive: true,
-                                plugins: {
-                                    legend: {
-                                        display: false
-                                    }
-                                },
-                                scales: {
-                                    y: {
-                                        beginAtZero: true
-                                    }
+                const ctx = document.getElementById('chartTransaksi');
+                if (!ctx) return;
+
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: {!! json_encode($stokPerRuangan->pluck('nama_ruangan')) !!},
+                        datasets: [{
+                            label: 'Jumlah Stok',
+                            data: {!! json_encode($stokPerRuangan->pluck('total')) !!},
+                            fill: true,
+                            backgroundColor: 'rgba(0, 123, 255, 0.25)',
+                            borderColor: '#007bff',
+                            borderWidth: 2,
+                            tension: 0.35,
+                            pointRadius: 4,
+                            pointHoverRadius: 6,
+                            pointBackgroundColor: '#007bff'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false, // 🔥 INI KUNCI
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    precision: 0
                                 }
                             }
-                        });
-                    });
-                </script>
+                        }
+                    }
+                });
+
+            });
+        </script>
 
 
-            @endsection
+    @endsection
 
 
-        @endsection
+@endsection

@@ -1,0 +1,41 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(wc -l \"/opt/homebrew/var/www/aplikasi inventori rs/app/Models\"/*.php)",
+      "Bash(php artisan migrate --path=database/migrations/2026_03_04_000001_add_approval_level_to_user_table.php)",
+      "Bash(php artisan migrate --path=database/migrations/2026_03_04_000002_create_usulan_pembelians_table.php)",
+      "Bash(php artisan migrate --path=database/migrations/2026_03_04_000003_create_detail_usulan_pembelians_table.php)",
+      "Bash(php artisan migrate --path=database/migrations/2026_03_04_000004_create_approval_usulan_pembelians_table.php)",
+      "Bash(php artisan tinker --execute=\"echo \\\\DB::select\\(''DESCRIBE user''\\)[0]->Type ?? ''''; $cols = \\\\DB::select\\(''DESCRIBE \\\\`user\\\\`''\\); foreach\\($cols as $c\\) echo $c->Field . '': '' . $c->Type . PHP_EOL;\")",
+      "Bash(php artisan tinker --execute=\"\\\\DB::statement\\(''DROP TABLE IF EXISTS usulan_pembelians''\\);\")",
+      "Bash(php artisan tinker --execute=\"\\\\DB::statement\\(''SET FOREIGN_KEY_CHECKS=0''\\); \\\\DB::statement\\(''DROP TABLE IF EXISTS approval_usulan_pembelians''\\); \\\\DB::statement\\(''DROP TABLE IF EXISTS detail_usulan_pembelians''\\); \\\\DB::statement\\(''DROP TABLE IF EXISTS usulan_pembelians''\\); \\\\DB::statement\\(''SET FOREIGN_KEY_CHECKS=1''\\); echo ''Done'';\")",
+      "Bash(php artisan tinker --execute=\":*)",
+      "Bash(php artisan route:list --name=usulan)",
+      "Bash(php artisan route:list --name=verify)",
+      "Bash(php artisan config:clear)",
+      "Bash(php artisan view:clear)",
+      "Bash(php artisan route:clear)",
+      "Bash(php -l app/Http/Controllers/UsulanPembelianController.php)",
+      "Bash(php -l app/Http/Controllers/VerifikasiController.php)",
+      "Bash(php -l app/Models/UsulanPembelian.php)",
+      "Bash(php -l app/Models/DetailUsulanPembelian.php)",
+      "Bash(php -l app/Models/ApprovalUsulanPembelian.php)",
+      "Bash(php artisan migrate:status)",
+      "Bash(php artisan tinker --execute=\"echo DB::select\\(''DESCRIBE ruangans''\\) ? implode\\('', '', array_column\\(DB::select\\(''DESCRIBE ruangans''\\), ''Field''\\)\\) : ''no table'';\")",
+      "Bash(php artisan migrate)",
+      "Bash(php artisan tinker --execute=\"DB::table\\(''migrations''\\)->insert\\([''migration'' => ''2025_12_23_105935_create_ruangans_table'', ''batch'' => 99]\\); echo ''done'';\")",
+      "Bash(xargs ls -la)",
+      "Bash(php artisan cache:clear)",
+      "Bash(php artisan tinker --execute=\"echo \\\\App\\\\Models\\\\User::whereNotNull\\(''approval_level''\\)->select\\(''idUser'',''nama'',''hakAkses'',''approval_level''\\)->get\\(\\);\")",
+      "Bash(php artisan make:migration add_tolak_to_detail_usulan_pembelians_table --table=detail_usulan_pembelians)",
+      "Bash(php artisan make:migration add_jabatan_to_user_table --table=user)",
+      "Bash(php artisan make:migration add_approver_id_to_ruangans_table --table=ruangans)",
+      "Bash(php -r \":*)",
+      "Bash(php artisan tinker --execute=\"Schema::hasColumn\\(''ruangans'', ''approver_id''\\) ? ''ada'' : ''tidak ada'';\")",
+      "Bash(php artisan tinker --execute=\"echo json_encode\\(Schema::getColumnListing\\(''ruangans''\\)\\);\")",
+      "Bash(php artisan make:migration add_approver_id_to_ruangans_v2 --table=ruangans)",
+      "Bash(php artisan tinker --execute=\"DB::table\\(''migrations''\\)->insert\\([''migration'' => ''2025_12_23_105935_create_ruangans_table'', ''batch'' => 10]\\);\")",
+      "Bash(php artisan tinker --execute=\"print_r\\(DB::select\\(''SHOW TABLES''\\)\\);\")"
+    ]
+  }
+}

@@ -31,11 +31,13 @@ class UpdateUserRequest extends FormRequest
     public function rules()
     {
         return [
-            'nama' => 'required|string',
-            'username' => 'required|string',
-            'alamat' => 'required|string',
-            'telepon' => 'required|numeric',
-            'hakAkses' => 'required|in:1,2,3',
+            'nama'           => 'required|string',
+            'username'       => 'required|string',
+            'alamat'         => 'required|string',
+            'telepon'        => 'required|numeric',
+            'hakAkses'       => 'required|in:1,2,3',
+            'approval_level' => 'nullable|in:1,2,3,4',
+            'jabatan'        => 'nullable|string|max:100',
         ];
     }
 }

@@ -36,6 +36,77 @@ Route::middleware('auth')->group(function ()
 			Route::delete('/{ppn}/destroy', 'PpnController@destroy')->name('destroy');
 		});
 
+
+
+//project inventory
+
+
+				//ruangan
+							Route::prefix('/ruangan')->name('ruangan.')->group(function ()
+							{
+								Route::get('/', 'RuanganController@index')->name('index');
+								Route::post('/store', 'RuanganController@store')->name('store');
+								Route::put('/{id}', 'RuanganController@update')->name('update');
+								Route::delete('/{ruangan}/destroy', 'RuanganController@destroy')->name('destroy');
+							});
+				//end
+
+				//kondisi
+							Route::prefix('/kondisi')->name('kondisi.')->group(function ()
+							{
+								Route::get('/', 'KondisiController@index')->name('index');
+								Route::post('/store', 'KondisiController@store')->name('store');
+								Route::put('/{id}', 'KondisiController@update')->name('update');
+								Route::delete('/{kondisi}/destroy', 'KondisiController@destroy')->name('destroy');
+							});
+				//end
+				//kategori
+							Route::prefix('/kategori')->name('kategori.')->group(function ()
+							{
+								Route::get('/', 'KategoriController@index')->name('index');
+								Route::post('/store', 'KategoriController@store')->name('store');
+								Route::put('/{id}', 'KategoriController@update')->name('update');
+								Route::delete('/{kategori}/destroy', 'KategoriController@destroy')->name('destroy');
+							});
+				//end
+				//kondisi
+
+							Route::prefix('/kondisis')->name('kondisis.')->group(function ()
+							{
+								Route::get('/', 'KondisiController@index')->name('index');
+								Route::post('/store', 'KondisiController@store')->name('store');
+								Route::put('/{id}', 'KondisiController@update')->name('update');
+								Route::delete('/{kondisi}/destroy', 'KondisiController@destroy')->name('destroy');
+							});
+
+
+				//end
+
+				//laporan stok barang per ruangan
+							Route::prefix('/laporan')->name('laporan.')->group(function ()
+							{
+								Route::get('/', 'LaporaninventarisController@index')->name('index');
+								Route::get('/pdf', 'LaporaninventarisController@pdf')->name('pdf');
+								Route::get('/excel', 'LaporaninventarisController@excel')->name('excel');
+
+
+
+
+								Route::post('/store', 'LaporaninventarisController@store')->name('store');
+								Route::put('/{id}', 'LaporaninventarisController@update')->name('update');
+								Route::delete('/{laporan}/destroy', 'LaporaninventarisController@destroy')->name('destroy');
+							});
+				//end
+
+
+
+
+
+//end
+
+
+
+
 		Route::prefix('/shift')->name('shift.')->group(function ()
 		{
 			Route::get('/', 'ShiftController@index')->name('index');
@@ -235,6 +306,34 @@ Route::middleware('auth')->group(function ()
 	Route::middleware('can:isAdminKasir')->group(function ()
 	{
 
+// untuk aplikasi inventori RS
+			
+
+//data barang
+
+	                    	Route::prefix('/barang')->name('barang.')->group(function ()
+							{
+								Route::get('/', 'BarangController@index')->name('index');
+								Route::post('/store', 'BarangController@store')->name('store');
+								Route::put('/{id}', 'BarangController@update')->name('update');
+								Route::delete('/{barang}/destroy', 'BarangController@destroy')->name('destroy');
+							});
+
+							 	Route::prefix('/inventory')->name('inventory.')->group(function ()
+							{
+								Route::get('/', 'InventoryController@index')->name('index');
+								Route::post('/store', 'InventoryController@store')->name('store');
+								Route::put('/{id}', 'InventoryController@update')->name('update');
+								Route::delete('/{inventory}/destroy', 'InventoryController@destroy')->name('destroy');
+							});
+
+
+
+//
+
+
+
+
 		Route::prefix('/transaction')->name('transaction.')->group(function ()
 		{
 			Route::get('/', 'TransactionController@index')->name('index');
@@ -348,6 +447,26 @@ Route::prefix('/shiftsession')->name('shiftsession.')->group(function ()
 
 	});
 
+	// Usulan Pembelian Barang (semua role yang sudah login)
+	Route::prefix('/usulan-pembelian')->name('usulan.')->group(function () {
+		Route::get('/', 'UsulanPembelianController@index')->name('index');
+		Route::get('/data', 'UsulanPembelianController@data')->name('data');
+		Route::get('/create', 'UsulanPembelianController@create')->name('create');
+		Route::post('/store', 'UsulanPembelianController@store')->name('store');
+		Route::get('/{id}', 'UsulanPembelianController@show')->name('show');
+		Route::get('/{id}/edit', 'UsulanPembelianController@edit')->name('edit');
+		Route::put('/{id}', 'UsulanPembelianController@update')->name('update');
+		Route::delete('/{id}', 'UsulanPembelianController@destroy')->name('destroy');
+		Route::post('/{id}/submit', 'UsulanPembelianController@submit')->name('submit');
+		Route::post('/{id}/approve', 'UsulanPembelianController@approve')->name('approve');
+		Route::post('/{id}/reject', 'UsulanPembelianController@reject')->name('reject');
+		Route::post('/{id}/resubmit', 'UsulanPembelianController@resubmit')->name('resubmit');
+		Route::post('/{id}/reject-item/{detailId}', 'UsulanPembelianController@rejectItem')->name('reject-item');
+		Route::post('/{id}/restore-item/{detailId}', 'UsulanPembelianController@restoreItem')->name('restore-item');
+		Route::get('/{id}/pdf', 'UsulanPembelianController@pdf')->name('pdf');
+		Route::get('/{id}/wa', 'UsulanPembelianController@waLink')->name('wa');
+	});
+
 	Route::resource('/category', 'CategoryController')->except(['create', 'edit', 'show'])->middleware('can:isAdminGudang');
 	Route::resource('/rack', 'RackController')->except(['create', 'edit', 'show'])->middleware('can:isAdminGudang');
 	Route::resource('/daylicash', 'DaylicashController')->except([ 'edit', 'show'])->middleware('can:isAdminGudang');
@@ -364,6 +483,44 @@ Route::namespace('Auth')->group(function ()
 {
 	Route::get('/login', 'LoginController@showLoginForm');
 	Route::post('/login', 'LoginController@login')->name('login');
-	
+
 	Route::get('/logout', 'LoginController@logout')->name('logout');
 });
+
+// Public: Verifikasi QR Code tanda tangan digital (tanpa login)
+Route::get('/verify/{token}', 'VerifikasiController@verify')->name('verify');
+
+// API: cek jumlah pending approval (untuk polling notifikasi suara)
+Route::middleware('auth')->get('/api/pending-approval-count', function () {
+    $user = auth()->user();
+    if (!$user->approval_level) {
+        return response()->json(['count' => 0, 'items' => []]);
+    }
+    $statusMap = [1 => 'diajukan', 2 => 'diperiksa', 3 => 'dikonfirmasi', 4 => 'diketahui'];
+    $status = $statusMap[$user->approval_level] ?? null;
+    $count = 0;
+    $items = [];
+    if ($status) {
+        $query = \App\Models\UsulanPembelian::with('ruangan')->where('status', $status);
+
+        // Level 1: hanya tampilkan usulan dari ruangan yang ditunjuk ke user ini
+        if ($user->approval_level == 1) {
+            $query->whereHas('ruangan', function ($q) use ($user) {
+                $q->where(function ($q2) use ($user) {
+                    $q2->where('approver_id', $user->idUser)->orWhereNull('approver_id');
+                });
+            });
+        }
+
+        $count   = (clone $query)->count();
+        $usulans = $query->latest()->limit(5)->get();
+        $items = $usulans->map(fn($u) => [
+            'id'      => $u->id,
+            'nomor'   => $u->nomor_usulan,
+            'ruangan' => $u->ruangan->nama_ruangan ?? '-',
+            'tanggal' => $u->tanggal_pengajuan->format('d/m/Y'),
+            'url'     => route('usulan.show', $u->id),
+        ]);
+    }
+    return response()->json(['count' => $count, 'items' => $items]);
+})->name('api.pending.count');

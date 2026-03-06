@@ -41,7 +41,9 @@ class User extends Authenticatable
         'telepon',
         'password',
         'hakAkses',
-        'lokasi',
+        'approval_level',
+        'jabatan',
+        'ruangan_id',
         'roleadmin',
     ];
 
@@ -68,4 +70,30 @@ class User extends Authenticatable
     {
         $this->attributes['password'] = md5($password);
     }
+    // Relasi ke Ruangan
+    public function ruangan()
+    {
+        return $this->belongsTo(Ruangan::class, 'ruangan_id', 'id');
+    }
+
+    public function stokBarangs()
+{
+    return $this->hasMany(StokBarang::class, 'user_id', 'idUser');
+}
+
+public function mutasiBarangs()
+{
+    return $this->hasMany(MutasiBarang::class, 'user_id', 'idUser');
+}
+
+public function usulanPembelians()
+{
+    return $this->hasMany(UsulanPembelian::class, 'dibuat_oleh', 'idUser');
+}
+
+public function approvalUsulan()
+{
+    return $this->hasMany(ApprovalUsulanPembelian::class, 'user_id', 'idUser');
+}
+
 }

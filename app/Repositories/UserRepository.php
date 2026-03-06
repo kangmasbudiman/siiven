@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 namespace App\Repositories;
 
@@ -15,7 +15,21 @@ class UserRepository extends Repository {
 
 	public function get(): Object
 	{
-		return $this->model->get(['idUser', 'username', 'nama', 'alamat', 'telepon', 'hakAkses','lokasi', 'roleadmin']);
+		return $this->model
+		->leftJoin('ruangans', 'ruangans.id', '=', 'user.ruangan_id')
+		->get([
+            'user.idUser',
+            'user.username',
+            'user.nama',
+            'user.alamat',
+            'user.telepon',
+            'user.hakAkses',
+            'user.approval_level',
+            'user.jabatan',
+            'user.roleadmin',
+            'user.ruangan_id',
+            'ruangans.nama_ruangan'
+        ]);
 	}
 
 	public function getKasir(): Object
@@ -30,4 +44,4 @@ class UserRepository extends Repository {
 
 }
 
- ?>
+?>

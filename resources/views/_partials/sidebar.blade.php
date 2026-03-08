@@ -65,14 +65,6 @@
                                 <a href="{{ route('kategori.index') }}">Kategori Barang</a>
                             </li>
 
-
-
-
-
-
-
-
-
                         </ul>
                     </li>
                 @endcan
@@ -95,42 +87,13 @@
                                 <a href="{{ route('inventory.index') }}">Inventory Ruangan</a>
                             </li>
 
-                         
-
-
                             <li>
-
                                 @can('isAdmin')
                                 </li>
                             @endcan
                         </ul>
                     </li>
                 @endcan
-
-                <!--
-                @can('isAdmin')
-    <li
-                            class="menu-item-has-children dropdown {{ active('finance', false, 'active') }} {{ active('category_finance', false, 'active') }}">
-                            <a href="#" class="dropdown-toggle" data-toggle="dropdown">
-
-                                <i class="menu-icon fa fa-print"></i>
-                                Pengeluaran
-                            </a>
-                            <ul class="sub-menu children dropdown-menu">
-                                <li>
-                                    <i class="menu-icon fa fa-print"></i>
-                                    <a href="{{ route('category_finance.index') }}"></i>Kategori Pengeluaran</a>
-                                </li>
-                                <li>
-                                    <i class="menu-icon fa fa-print"></i>
-                                    <a href="{{ route('finance.index') }}"></i>Pengeluaran</a>
-                                </li>
-                            </ul>
-                        </li>
-@endcan
-                -->
-
-
 
                 @can('isAdmin')
                     <li
@@ -182,8 +145,6 @@
                         @endif
                     </ul>
                 </li>
-
-
 
                 <li
                     class="menu-item-has-children dropdown {{ active('change_password', false, 'active') }} {{ active('ppn', false, 'active') }} {{ active('setting', false, 'active') }} {{ active('user', 'group', 'active') }}">

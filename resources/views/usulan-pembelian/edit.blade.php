@@ -72,7 +72,6 @@
                                     <th style="width:80px">Jumlah</th>
                                     <th style="width:140px">Harga Satuan (Rp)</th>
                                     <th style="width:140px">Jumlah (Rp)</th>
-                                    <th style="width:130px" class="text-center"><i class="fa fa-camera"></i> Foto</th>
                                     <th style="width:40px"></th>
                                 </tr>
                             </thead>
@@ -97,25 +96,6 @@
                                                value="{{ $detail->harga_satuan }}">
                                     </td>
                                     <td class="text-end align-middle subtotal-cell fw-bold"></td>
-                                    <td class="align-top" style="padding:6px;">
-                                        {{-- Foto yang sudah tersimpan --}}
-                                        @if($detail->lampirans->count() > 0)
-                                        <div class="d-flex flex-wrap gap-1 mb-1">
-                                            @foreach($detail->lampirans as $lmp)
-                                            <img src="{{ Storage::url($lmp->path) }}"
-                                                 style="width:50px;height:38px;object-fit:cover;border-radius:3px;border:1px solid #ccc;"
-                                                 title="{{ $lmp->nama_file }}">
-                                            @endforeach
-                                        </div>
-                                        @endif
-                                        {{-- Preview foto baru --}}
-                                        <div class="item-foto-preview d-flex flex-wrap gap-1 mb-1"></div>
-                                        <label class="btn btn-outline-secondary btn-sm mb-0" title="Tambah foto item">
-                                            <i class="fa fa-camera"></i>
-                                            <input type="file" name="item_lampirans[{{ $i }}][]"
-                                                   class="item-lampiran-input d-none" accept="image/*" multiple>
-                                        </label>
-                                    </td>
                                     <td class="text-center align-middle">
                                         <button type="button" class="btn btn-danger btn-sm btn-remove-row">
                                             <i class="fa fa-trash"></i>
@@ -128,7 +108,6 @@
                                 <tr class="table-light fw-bold">
                                     <td colspan="4" class="text-end">TOTAL</td>
                                     <td class="text-end" id="grand-total">Rp 0</td>
-                                    <td></td>
                                     <td></td>
                                 </tr>
                             </tfoot>
@@ -239,13 +218,6 @@ $(document).ready(function() {
                 <td><input type="number" name="items[${rowIndex}][jumlah]" class="form-control form-control-sm jumlah-input" min="1" value="1"></td>
                 <td><input type="number" name="items[${rowIndex}][harga_satuan]" class="form-control form-control-sm harga-input" min="0" value="0"></td>
                 <td class="text-end align-middle subtotal-cell fw-bold">Rp 0</td>
-                <td class="align-top" style="padding:6px;">
-                    <div class="item-foto-preview d-flex flex-wrap gap-1 mb-1"></div>
-                    <label class="btn btn-outline-secondary btn-sm mb-0" title="Tambah foto item">
-                        <i class="fa fa-camera"></i>
-                        <input type="file" name="item_lampirans[${rowIndex}][]" class="item-lampiran-input d-none" accept="image/*" multiple>
-                    </label>
-                </td>
                 <td class="text-center align-middle"><button type="button" class="btn btn-danger btn-sm btn-remove-row"><i class="fa fa-trash"></i></button></td>
             </tr>`;
         $('#items-body').append(html);
@@ -259,25 +231,6 @@ $(document).ready(function() {
         $(this).closest('tr').remove();
         updateRowNumbers();
         hitungTotal();
-    });
-
-    // Preview foto per item (thumbnail seperti halaman detail)
-    $(document).on('change', '.item-lampiran-input', function() {
-        const previewBox = $(this).closest('td').find('.item-foto-preview');
-        previewBox.empty();
-        Array.from(this.files).forEach(function(file) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                previewBox.append(
-                    `<div class="position-relative">
-                        <img src="${e.target.result}"
-                             style="width:50px;height:38px;object-fit:cover;border-radius:3px;border:1px solid #ccc;"
-                             title="${file.name}">
-                    </div>`
-                );
-            };
-            reader.readAsDataURL(file);
-        });
     });
 
     // === Multi-image lampiran gallery ===

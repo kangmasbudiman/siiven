@@ -465,6 +465,8 @@ Route::prefix('/shiftsession')->name('shiftsession.')->group(function ()
 		Route::post('/{id}/restore-item/{detailId}', 'UsulanPembelianController@restoreItem')->name('restore-item');
 		Route::get('/{id}/pdf', 'UsulanPembelianController@pdf')->name('pdf');
 		Route::get('/{id}/wa', 'UsulanPembelianController@waLink')->name('wa');
+		Route::post('/{id}/lampiran', 'UsulanPembelianController@uploadLampiran')->name('lampiran.upload');
+		Route::delete('/{id}/lampiran/{lampiranId}', 'UsulanPembelianController@deleteLampiran')->name('lampiran.delete');
 	});
 
 	Route::resource('/category', 'CategoryController')->except(['create', 'edit', 'show'])->middleware('can:isAdminGudang');

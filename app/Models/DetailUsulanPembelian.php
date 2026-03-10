@@ -31,4 +31,9 @@ class DetailUsulanPembelian extends Model
     {
         return $this->belongsTo(UsulanPembelian::class, 'usulan_pembelian_id');
     }
+
+    public function lampirans()
+    {
+        return $this->hasMany(LampiranUsulanPembelian::class, 'detail_usulan_pembelian_id')->orderBy('id');
+    }
 }

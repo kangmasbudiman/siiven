@@ -114,6 +114,11 @@ class UsulanPembelian extends Model
         return $this->hasMany(ApprovalUsulanPembelian::class, 'usulan_pembelian_id')->orderBy('level');
     }
 
+    public function lampirans()
+    {
+        return $this->hasMany(LampiranUsulanPembelian::class, 'usulan_pembelian_id')->orderBy('id');
+    }
+
     public function getApprovalByLevel(int $level): ?ApprovalUsulanPembelian
     {
         return $this->approvals->where('level', $level)->where('status', 'approved')->first();

@@ -4,12 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Models\ApprovalUsulanPembelian;
 use App\Models\DetailUsulanPembelian;
+use App\Models\LampiranUsulanPembelian;
 use App\Models\Ruangan;
 use App\Models\UsulanPembelian;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class UsulanPembelianController extends Controller
 {
@@ -133,12 +135,17 @@ class UsulanPembelianController extends Controller
             : $user->ruangan_id;
 
         $request->validate([
-            'tanggal_pengajuan'  => 'required|date',
-            'keterangan'         => 'nullable|string',
-            'items'              => 'required|array|min:1',
-            'items.*.keterangan' => 'required|string',
-            'items.*.jumlah'     => 'required|integer|min:1',
+            'tanggal_pengajuan'    => 'required|date',
+            'keterangan'           => 'nullable|string',
+            'items'                => 'required|array|min:1',
+            'items.*.keterangan'   => 'required|string',
+            'items.*.jumlah'       => 'required|integer|min:1',
             'items.*.harga_satuan' => 'required|integer|min:0',
+            'lampirans'            => 'nullable|array|max:5',
+            'lampirans.*'          => 'image|max:5120',
+            'item_lampirans'       => 'nullable|array',
+            'item_lampirans.*'     => 'array|max:3',
+            'item_lampirans.*.*'   => 'image|max:5120',
         ]);
 
         if (!$ruanganId) {
@@ -161,12 +168,41 @@ class UsulanPembelianController extends Controller
 
                 foreach ($request->items as $i => $item) {
                     if (!empty($item['keterangan'])) {
-                        DetailUsulanPembelian::create([
+                        $detail = DetailUsulanPembelian::create([
                             'usulan_pembelian_id' => $usulan->id,
                             'no_urut'             => $i + 1,
                             'keterangan'          => $item['keterangan'],
                             'jumlah'              => $item['jumlah'],
                             'harga_satuan'        => $item['harga_satuan'] ?? 0,
+                        ]);
+
+                        // Lampiran per item
+                        if ($request->hasFile("item_lampirans.$i")) {
+                            foreach ($request->file("item_lampirans.$i") as $file) {
+                                $path = $file->store('usulan-lampiran', 'public');
+                                LampiranUsulanPembelian::create([
+                                    'usulan_pembelian_id'         => $usulan->id,
+                                    'detail_usulan_pembelian_id'  => $detail->id,
+                                    'nama_file'                   => $file->getClientOriginalName(),
+                                    'path'                        => $path,
+                                    'mime_type'                   => $file->getMimeType(),
+                                    'ukuran'                      => $file->getSize(),
+                                ]);
+                            }
+                        }
+                    }
+                }
+
+                // Lampiran umum (per usulan)
+                if ($request->hasFile('lampirans')) {
+                    foreach ($request->file('lampirans') as $file) {
+                        $path = $file->store('usulan-lampiran', 'public');
+                        LampiranUsulanPembelian::create([
+                            'usulan_pembelian_id' => $usulan->id,
+                            'nama_file'           => $file->getClientOriginalName(),
+                            'path'                => $path,
+                            'mime_type'           => $file->getMimeType(),
+                            'ukuran'              => $file->getSize(),
                         ]);
                     }
                 }
@@ -180,7 +216,7 @@ class UsulanPembelianController extends Controller
 
     public function show($id)
     {
-        $usulan = UsulanPembelian::with(['ruangan', 'pembuat', 'details', 'approvals.approver'])->findOrFail($id);
+        $usulan = UsulanPembelian::with(['ruangan', 'pembuat', 'details.lampirans', 'approvals.approver', 'lampirans' => fn($q) => $q->umum()])->findOrFail($id);
         $user = Auth::user();
 
         $canApprove = $this->canUserApprove($user, $usulan);
@@ -192,7 +228,7 @@ class UsulanPembelianController extends Controller
 
     public function edit($id)
     {
-        $usulan = UsulanPembelian::with('details')->findOrFail($id);
+        $usulan = UsulanPembelian::with(['details.lampirans'])->findOrFail($id);
         $user = Auth::user();
 
         if ($usulan->status !== 'draft' || $usulan->dibuat_oleh != $user->idUser) {
@@ -215,12 +251,17 @@ class UsulanPembelianController extends Controller
         }
 
         $request->validate([
-            'tanggal_pengajuan'  => 'required|date',
-            'keterangan'         => 'nullable|string',
-            'items'              => 'required|array|min:1',
-            'items.*.keterangan' => 'required|string',
-            'items.*.jumlah'     => 'required|integer|min:1',
-            'items.*.harga_satuan' => 'required|integer|min:0',
+            'tanggal_pengajuan'     => 'required|date',
+            'keterangan'            => 'nullable|string',
+            'items'                 => 'required|array|min:1',
+            'items.*.keterangan'    => 'required|string',
+            'items.*.jumlah'        => 'required|integer|min:1',
+            'items.*.harga_satuan'  => 'required|integer|min:0',
+            'lampirans'             => 'nullable|array|max:5',
+            'lampirans.*'           => 'image|max:5120',
+            'item_lampirans'        => 'nullable|array',
+            'item_lampirans.*'      => 'array|max:3',
+            'item_lampirans.*.*'    => 'image|max:5120',
         ]);
 
         // Admin bisa ubah ruangan, user biasa tidak
@@ -236,16 +277,73 @@ class UsulanPembelianController extends Controller
                     'keterangan'        => $request->keterangan,
                 ]);
 
-                // Hapus detail lama & buat ulang
-                $usulan->details()->delete();
+                // Update-in-place: pertahankan ID detail agar lampiran per item tidak hilang
+                $submittedIds = collect($request->items)
+                    ->pluck('id')->filter()->map('intval')->values()->toArray();
+
+                // Hapus detail yang dihapus user beserta lampirannya
+                $usulan->details()->whereNotIn('id', $submittedIds)->each(function ($d) {
+                    foreach ($d->lampirans as $l) {
+                        Storage::disk('public')->delete($l->path);
+                    }
+                    $d->lampirans()->delete();
+                    $d->delete();
+                });
+
+                $urut = 1;
                 foreach ($request->items as $i => $item) {
-                    if (!empty($item['keterangan'])) {
-                        DetailUsulanPembelian::create([
+                    if (empty($item['keterangan'])) continue;
+
+                    $detailId = !empty($item['id']) ? (int)$item['id'] : null;
+
+                    if ($detailId) {
+                        $detail = DetailUsulanPembelian::find($detailId);
+                        if ($detail) {
+                            $detail->update([
+                                'no_urut'     => $urut,
+                                'keterangan'  => $item['keterangan'],
+                                'jumlah'      => $item['jumlah'],
+                                'harga_satuan' => $item['harga_satuan'] ?? 0,
+                            ]);
+                        }
+                    } else {
+                        $detail = DetailUsulanPembelian::create([
                             'usulan_pembelian_id' => $usulan->id,
-                            'no_urut'             => $i + 1,
+                            'no_urut'             => $urut,
                             'keterangan'          => $item['keterangan'],
                             'jumlah'              => $item['jumlah'],
                             'harga_satuan'        => $item['harga_satuan'] ?? 0,
+                        ]);
+                    }
+
+                    // Lampiran per item (key = index i)
+                    if ($detail && $request->hasFile("item_lampirans.$i")) {
+                        foreach ($request->file("item_lampirans.$i") as $file) {
+                            $path = $file->store('usulan-lampiran', 'public');
+                            LampiranUsulanPembelian::create([
+                                'usulan_pembelian_id'        => $usulan->id,
+                                'detail_usulan_pembelian_id' => $detail->id,
+                                'nama_file'                  => $file->getClientOriginalName(),
+                                'path'                       => $path,
+                                'mime_type'                  => $file->getMimeType(),
+                                'ukuran'                     => $file->getSize(),
+                            ]);
+                        }
+                    }
+
+                    $urut++;
+                }
+
+                // Lampiran umum (per usulan)
+                if ($request->hasFile('lampirans')) {
+                    foreach ($request->file('lampirans') as $file) {
+                        $path = $file->store('usulan-lampiran', 'public');
+                        LampiranUsulanPembelian::create([
+                            'usulan_pembelian_id' => $usulan->id,
+                            'nama_file'           => $file->getClientOriginalName(),
+                            'path'                => $path,
+                            'mime_type'           => $file->getMimeType(),
+                            'ukuran'              => $file->getSize(),
                         ]);
                     }
                 }
@@ -419,9 +517,66 @@ class UsulanPembelianController extends Controller
         return redirect()->route('usulan.edit', $id)->with('info', 'Silakan edit dan ajukan kembali usulan.');
     }
 
+    public function uploadLampiran(Request $request, $id)
+    {
+        $usulan = UsulanPembelian::findOrFail($id);
+        $user = Auth::user();
+
+        if ($usulan->status !== 'draft' || $usulan->dibuat_oleh != $user->idUser) {
+            return redirect()->back()->with('error', 'Lampiran hanya dapat ditambahkan pada usulan berstatus draft milik Anda.');
+        }
+
+        $request->validate([
+            'lampirans'   => 'required|array|max:5',
+            'lampirans.*' => 'image|max:5120',
+        ]);
+
+        $detailId = $request->input('detail_id');
+        // Validasi detail_id milik usulan ini
+        if ($detailId) {
+            $detailExists = DetailUsulanPembelian::where('id', $detailId)
+                ->where('usulan_pembelian_id', $id)
+                ->exists();
+            if (!$detailExists) $detailId = null;
+        }
+
+        foreach ($request->file('lampirans') as $file) {
+            $path = $file->store('usulan-lampiran', 'public');
+            LampiranUsulanPembelian::create([
+                'usulan_pembelian_id'        => $usulan->id,
+                'detail_usulan_pembelian_id' => $detailId ?: null,
+                'nama_file'                  => $file->getClientOriginalName(),
+                'path'                       => $path,
+                'mime_type'                  => $file->getMimeType(),
+                'ukuran'                     => $file->getSize(),
+            ]);
+        }
+
+        return redirect()->route('usulan.show', $id)->with('success', 'Lampiran berhasil diunggah.');
+    }
+
+    public function deleteLampiran($id, $lampiranId)
+    {
+        $usulan = UsulanPembelian::findOrFail($id);
+        $user = Auth::user();
+
+        if ($usulan->status !== 'draft' || $usulan->dibuat_oleh != $user->idUser) {
+            return redirect()->back()->with('error', 'Tidak dapat menghapus lampiran.');
+        }
+
+        $lampiran = LampiranUsulanPembelian::where('id', $lampiranId)
+            ->where('usulan_pembelian_id', $id)
+            ->firstOrFail();
+
+        Storage::disk('public')->delete($lampiran->path);
+        $lampiran->delete();
+
+        return redirect()->route('usulan.show', $id)->with('success', 'Lampiran berhasil dihapus.');
+    }
+
     public function pdf($id)
     {
-        $usulan = UsulanPembelian::with(['ruangan', 'pembuat', 'details', 'approvals.approver'])->findOrFail($id);
+        $usulan = UsulanPembelian::with(['ruangan', 'pembuat', 'details.lampirans', 'approvals.approver', 'lampirans' => fn($q) => $q->umum()])->findOrFail($id);
 
         // Siapkan data approval per level (1-4)
         $approvalData = [];
@@ -447,7 +602,45 @@ class UsulanPembelianController extends Controller
             $details[] = null;
         }
 
-        $pdf = \PDF::loadView('usulan-pembelian.pdf', compact('usulan', 'approvalData', 'qrImages', 'qrPembuat', 'details'))
+        // Konversi lampiran ke base64 untuk embed di PDF
+        // Lampiran umum (per usulan)
+        $lampiranBase64 = [];
+        foreach ($usulan->lampirans as $lampiran) {
+            $fullPath = Storage::disk('public')->path($lampiran->path);
+            if (file_exists($fullPath)) {
+                $lampiranBase64[] = [
+                    'nama_file' => $lampiran->nama_file,
+                    'mime_type' => $lampiran->mime_type ?? 'image/jpeg',
+                    'base64'    => 'data:' . ($lampiran->mime_type ?? 'image/jpeg') . ';base64,' . base64_encode(file_get_contents($fullPath)),
+                ];
+            }
+        }
+
+        // Lampiran per item: [ detail_id => ['keterangan'=>..., 'fotos'=>[...]] ]
+        $lampiranPerItem = [];
+        foreach ($usulan->details as $detail) {
+            if ($detail->lampirans->isEmpty()) continue;
+            $fotos = [];
+            foreach ($detail->lampirans as $lampiran) {
+                $fullPath = Storage::disk('public')->path($lampiran->path);
+                if (file_exists($fullPath)) {
+                    $fotos[] = [
+                        'nama_file' => $lampiran->nama_file,
+                        'mime_type' => $lampiran->mime_type ?? 'image/jpeg',
+                        'base64'    => 'data:' . ($lampiran->mime_type ?? 'image/jpeg') . ';base64,' . base64_encode(file_get_contents($fullPath)),
+                    ];
+                }
+            }
+            if (!empty($fotos)) {
+                $lampiranPerItem[] = [
+                    'no_urut'    => $detail->no_urut,
+                    'keterangan' => $detail->keterangan,
+                    'fotos'      => $fotos,
+                ];
+            }
+        }
+
+        $pdf = \PDF::loadView('usulan-pembelian.pdf', compact('usulan', 'approvalData', 'qrImages', 'qrPembuat', 'details', 'lampiranBase64', 'lampiranPerItem'))
             ->setPaper('A4', 'portrait');
 
         return $pdf->stream('usulan-pembelian-' . $usulan->nomor_usulan . '.pdf');

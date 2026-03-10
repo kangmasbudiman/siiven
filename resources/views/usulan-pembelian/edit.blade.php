@@ -17,7 +17,7 @@
                 </div>
             @endif
 
-            <form action="{{ route('usulan.update', $usulan->id) }}" method="POST" id="form-usulan">
+            <form action="{{ route('usulan.update', $usulan->id) }}" method="POST" id="form-usulan" enctype="multipart/form-data">
                 @csrf @method('PUT')
 
                 {{-- Info Pengaju (hanya baca) --}}
@@ -69,10 +69,10 @@
                                 <tr>
                                     <th style="width:40px">No</th>
                                     <th>Keterangan / Nama Barang</th>
-                                    <th style="width:100px">Jumlah</th>
-                                    <th style="width:160px">Harga Satuan (Rp)</th>
-                                    <th style="width:160px">Jumlah (Rp)</th>
-                                    <th style="width:50px"></th>
+                                    <th style="width:80px">Jumlah</th>
+                                    <th style="width:140px">Harga Satuan (Rp)</th>
+                                    <th style="width:140px">Jumlah (Rp)</th>
+                                    <th style="width:40px"></th>
                                 </tr>
                             </thead>
                             <tbody id="items-body">
@@ -80,6 +80,7 @@
                                 <tr class="item-row">
                                     <td class="text-center align-middle row-number">{{ $i + 1 }}</td>
                                     <td>
+                                        <input type="hidden" name="items[{{ $i }}][id]" value="{{ $detail->id }}">
                                         <input type="text" name="items[{{ $i }}][keterangan]"
                                                class="form-control form-control-sm"
                                                value="{{ $detail->keterangan }}">
@@ -117,6 +118,45 @@
                 <div class="mb-3">
                     <label class="form-label">Keterangan Tambahan</label>
                     <textarea name="keterangan" class="form-control" rows="3">{{ old('keterangan', $usulan->keterangan) }}</textarea>
+                </div>
+
+                {{-- Lampiran Foto --}}
+                <div class="card mb-3">
+                    <div class="card-header bg-light">
+                        <strong><i class="fa fa-paperclip me-1"></i>Lampiran Foto</strong>
+                        <small class="text-muted ms-2">Maks. 5 foto, tiap file maks. 5MB (JPG/PNG/GIF/WEBP)</small>
+                    </div>
+                    <div class="card-body">
+                        {{-- Lampiran yang sudah ada --}}
+                        @if($usulan->lampirans->count() > 0)
+                            <p class="text-muted small mb-2">Lampiran saat ini (klik <i class="fa fa-trash"></i> untuk hapus):</p>
+                            <div class="d-flex flex-wrap gap-2 mb-3">
+                                @foreach($usulan->lampirans as $lmp)
+                                <div class="position-relative" style="width:120px;">
+                                    <a href="{{ Storage::url($lmp->path) }}" target="_blank">
+                                        <img src="{{ Storage::url($lmp->path) }}" class="img-thumbnail"
+                                             style="width:120px;height:90px;object-fit:cover;">
+                                    </a>
+                                    <div class="text-truncate small text-muted mt-1" style="max-width:120px" title="{{ $lmp->nama_file }}">{{ $lmp->nama_file }}</div>
+                                    <form action="{{ route('usulan.lampiran.delete', [$usulan->id, $lmp->id]) }}"
+                                          method="POST" class="d-inline"
+                                          onsubmit="return confirm('Hapus lampiran ini?')">
+                                        @csrf @method('DELETE')
+                                        <button type="submit" class="btn btn-danger btn-sm position-absolute top-0 end-0 p-0" style="width:22px;height:22px;font-size:10px;">
+                                            <i class="fa fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                                @endforeach
+                            </div>
+                        @endif
+
+                        {{-- Upload lampiran baru --}}
+                        <label class="form-label small">Tambah Lampiran Baru:</label>
+                        <input type="file" name="lampirans[]" id="input-lampiran" class="form-control"
+                               accept="image/*" multiple>
+                        <div id="preview-lampiran" class="d-flex flex-wrap gap-2 mt-3"></div>
+                    </div>
                 </div>
 
                 <div class="d-flex gap-2">
@@ -169,7 +209,10 @@ $(document).ready(function() {
         const html = `
             <tr class="item-row">
                 <td class="text-center align-middle row-number">${$('.item-row').length + 1}</td>
-                <td><input type="text" name="items[${rowIndex}][keterangan]" class="form-control form-control-sm" placeholder="Nama / keterangan barang"></td>
+                <td>
+                    <input type="hidden" name="items[${rowIndex}][id]" value="">
+                    <input type="text" name="items[${rowIndex}][keterangan]" class="form-control form-control-sm" placeholder="Nama / keterangan barang">
+                </td>
                 <td><input type="number" name="items[${rowIndex}][jumlah]" class="form-control form-control-sm jumlah-input" min="1" value="1"></td>
                 <td><input type="number" name="items[${rowIndex}][harga_satuan]" class="form-control form-control-sm harga-input" min="0" value="0"></td>
                 <td class="text-end align-middle subtotal-cell fw-bold">Rp 0</td>
@@ -186,6 +229,28 @@ $(document).ready(function() {
         $(this).closest('tr').remove();
         updateRowNumbers();
         hitungTotal();
+    });
+
+    // Preview lampiran umum
+    $('#input-lampiran').on('change', function() {
+        const preview = $('#preview-lampiran');
+        preview.empty();
+        const files = this.files;
+        if (files.length > 5) {
+            alert('Maksimal 5 foto per unggahan.');
+            this.value = '';
+            return;
+        }
+        Array.from(files).forEach(function(file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                preview.append(`<div class="position-relative" style="width:120px;">
+                    <img src="${e.target.result}" class="img-thumbnail" style="width:120px;height:90px;object-fit:cover;">
+                    <div class="text-truncate small text-muted mt-1" style="max-width:120px">${file.name}</div>
+                </div>`);
+            };
+            reader.readAsDataURL(file);
+        });
     });
 });
 </script>

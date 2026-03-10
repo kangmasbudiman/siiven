@@ -65,6 +65,7 @@
                         <th style="width:80px" class="text-center">Jumlah</th>
                         <th style="width:150px" class="text-end">Harga Satuan</th>
                         <th style="width:150px" class="text-end">Jumlah (Rp)</th>
+                        <th style="width:110px" class="text-center"><i class="fa fa-camera"></i> Foto</th>
                         @if($canApprove)
                         <th style="width:80px" class="text-center">Aksi</th>
                         @endif
@@ -73,8 +74,8 @@
                 <tbody>
                     @forelse($usulan->details as $detail)
                     <tr class="{{ $detail->is_ditolak ? 'table-danger' : '' }}">
-                        <td class="text-center">{{ $detail->no_urut }}</td>
-                        <td>
+                        <td class="text-center align-top pt-2">{{ $detail->no_urut }}</td>
+                        <td class="align-top pt-2">
                             @if($detail->is_ditolak)
                                 <s class="text-danger">{{ $detail->keterangan }}</s>
                                 <br><small class="text-danger"><i class="fa fa-times-circle"></i> Ditolak: {{ $detail->alasan_tolak }}</small>
@@ -82,17 +83,58 @@
                                 {{ $detail->keterangan }}
                             @endif
                         </td>
-                        <td class="text-center {{ $detail->is_ditolak ? 'text-muted' : '' }}">
+                        <td class="text-center align-top pt-2 {{ $detail->is_ditolak ? 'text-muted' : '' }}">
                             {{ $detail->is_ditolak ? '-' : $detail->jumlah }}
                         </td>
-                        <td class="text-end {{ $detail->is_ditolak ? 'text-muted' : '' }}">
+                        <td class="text-end align-top pt-2 {{ $detail->is_ditolak ? 'text-muted' : '' }}">
                             {{ $detail->is_ditolak ? '-' : 'Rp ' . number_format($detail->harga_satuan, 0, ',', '.') }}
                         </td>
-                        <td class="text-end fw-bold {{ $detail->is_ditolak ? 'text-muted' : '' }}">
+                        <td class="text-end fw-bold align-top pt-2 {{ $detail->is_ditolak ? 'text-muted' : '' }}">
                             {{ $detail->is_ditolak ? '-' : 'Rp ' . number_format($detail->subtotal, 0, ',', '.') }}
                         </td>
+                        {{-- Lampiran per item --}}
+                        <td class="text-center align-top" style="padding:6px;">
+                            @if($detail->lampirans->count() > 0)
+                                <div class="d-flex flex-wrap gap-1 justify-content-center mb-1">
+                                    @foreach($detail->lampirans as $lmp)
+                                    <div class="position-relative">
+                                        <img src="{{ Storage::url($lmp->path) }}"
+                                             class="lampiran-thumb"
+                                             data-src="{{ Storage::url($lmp->path) }}"
+                                             data-nama="{{ $lmp->nama_file }}"
+                                             style="width:50px;height:38px;object-fit:cover;border-radius:3px;border:1px solid #ccc;cursor:zoom-in;"
+                                             title="Klik untuk perbesar — {{ $lmp->nama_file }}">
+                                        @if($canEdit)
+                                        <form action="{{ route('usulan.lampiran.delete', [$usulan->id, $lmp->id]) }}"
+                                              method="POST"
+                                              onsubmit="return confirm('Hapus foto ini?')"
+                                              style="display:inline;">
+                                            @csrf @method('DELETE')
+                                            <button type="submit"
+                                                    class="btn btn-danger p-0 position-absolute top-0 end-0"
+                                                    style="width:16px;height:16px;font-size:9px;line-height:1;"
+                                                    title="Hapus foto">&times;</button>
+                                        </form>
+                                        @endif
+                                    </div>
+                                    @endforeach
+                                </div>
+                            @endif
+                            @if($canEdit)
+                            <form action="{{ route('usulan.lampiran.upload', $usulan->id) }}" method="POST"
+                                  enctype="multipart/form-data">
+                                @csrf
+                                <input type="hidden" name="detail_id" value="{{ $detail->id }}">
+                                <label class="btn btn-outline-secondary p-1 mb-0" title="Tambah foto" style="font-size:11px;cursor:pointer;">
+                                    <i class="fa fa-camera"></i>
+                                    <input type="file" name="lampirans[]" class="d-none" accept="image/*" multiple
+                                           onchange="this.form.submit()">
+                                </label>
+                            </form>
+                            @endif
+                        </td>
                         @if($canApprove)
-                        <td class="text-center">
+                        <td class="text-center align-top pt-2">
                             @if($detail->is_ditolak)
                                 <form action="{{ route('usulan.restore-item', [$usulan->id, $detail->id]) }}" method="POST" class="d-inline">
                                     @csrf
@@ -113,12 +155,12 @@
                         @endif
                     </tr>
                     @empty
-                    <tr><td colspan="{{ $canApprove ? 6 : 5 }}" class="text-center text-muted">Belum ada item</td></tr>
+                    <tr><td colspan="{{ $canApprove ? 7 : 6 }}" class="text-center text-muted">Belum ada item</td></tr>
                     @endforelse
                 </tbody>
                 <tfoot>
                     <tr class="table-light fw-bold">
-                        <td colspan="{{ $canApprove ? 5 : 4 }}" class="text-end">TOTAL</td>
+                        <td colspan="{{ $canApprove ? 6 : 5 }}" class="text-end">TOTAL</td>
                         <td class="text-end">Rp {{ number_format($usulan->total, 0, ',', '.') }}</td>
                     </tr>
                 </tfoot>
@@ -174,6 +216,73 @@
                     </div>
                 </div>
             </div>
+
+            {{-- Lampiran Foto --}}
+            @if($usulan->lampirans->count() > 0)
+            <div class="card mt-4">
+                <div class="card-header bg-light">
+                    <strong><i class="fa fa-paperclip me-1"></i>Lampiran Foto</strong>
+                    <span class="badge bg-secondary ms-1">{{ $usulan->lampirans->count() }}</span>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex flex-wrap gap-3">
+                        @foreach($usulan->lampirans as $lmp)
+                        <div class="text-center" style="width:140px;">
+                            <img src="{{ Storage::url($lmp->path) }}" class="img-thumbnail lampiran-thumb"
+                                 data-src="{{ Storage::url($lmp->path) }}"
+                                 data-nama="{{ $lmp->nama_file }}"
+                                 style="width:140px;height:105px;object-fit:cover;cursor:zoom-in;"
+                                 title="Klik untuk perbesar — {{ $lmp->nama_file }}">
+                            <div class="text-truncate small text-muted mt-1" title="{{ $lmp->nama_file }}">{{ $lmp->nama_file }}</div>
+                            @if($canEdit)
+                            <form action="{{ route('usulan.lampiran.delete', [$usulan->id, $lmp->id]) }}"
+                                  method="POST" class="d-inline mt-1"
+                                  onsubmit="return confirm('Hapus lampiran ini?')">
+                                @csrf @method('DELETE')
+                                <button type="submit" class="btn btn-danger btn-sm"><i class="fa fa-trash"></i> Hapus</button>
+                            </form>
+                            @endif
+                        </div>
+                        @endforeach
+                    </div>
+
+                    @if($canEdit)
+                    <hr>
+                    <form action="{{ route('usulan.lampiran.upload', $usulan->id) }}" method="POST"
+                          enctype="multipart/form-data" class="mt-2">
+                        @csrf
+                        <div class="input-group">
+                            <input type="file" name="lampirans[]" class="form-control" accept="image/*" multiple required>
+                            <button type="submit" class="btn btn-outline-primary">
+                                <i class="fa fa-upload me-1"></i>Tambah Foto
+                            </button>
+                        </div>
+                        <small class="text-muted">Maks. 5 foto, tiap file maks. 5MB</small>
+                    </form>
+                    @endif
+                </div>
+            </div>
+            @elseif($canEdit)
+            <div class="card mt-4">
+                <div class="card-header bg-light">
+                    <strong><i class="fa fa-paperclip me-1"></i>Lampiran Foto</strong>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted small">Belum ada lampiran.</p>
+                    <form action="{{ route('usulan.lampiran.upload', $usulan->id) }}" method="POST"
+                          enctype="multipart/form-data">
+                        @csrf
+                        <div class="input-group">
+                            <input type="file" name="lampirans[]" class="form-control" accept="image/*" multiple required>
+                            <button type="submit" class="btn btn-outline-primary">
+                                <i class="fa fa-upload me-1"></i>Tambah Foto
+                            </button>
+                        </div>
+                        <small class="text-muted">Maks. 5 foto, tiap file maks. 5MB</small>
+                    </form>
+                </div>
+            </div>
+            @endif
 
             {{-- Tombol Aksi --}}
             <div class="d-flex gap-2 mt-3 flex-wrap">
@@ -320,5 +429,87 @@ $(document).on('click', '.btn-tolak-item', function() {
 </script>
 @endpush
 @endif
+
+{{-- Modal Lightbox Lampiran --}}
+<div class="modal fade" id="modalLightbox" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
+        <div class="modal-content bg-dark border-0">
+            <div class="modal-header border-0 pb-1 pt-2 px-3">
+                <span class="text-white small" id="lightbox-nama"></span>
+                <div class="d-flex gap-2 ms-auto">
+                    <a id="lightbox-open-link" href="#" target="_blank" class="btn btn-sm btn-outline-light" title="Buka di tab baru">
+                        <i class="fa fa-external-link"></i>
+                    </a>
+                    <button type="button" class="btn btn-sm btn-outline-light" data-bs-dismiss="modal" title="Tutup">
+                        <i class="fa fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="modal-body text-center p-2">
+                <img id="lightbox-img" src="" alt=""
+                     style="max-width:100%;max-height:80vh;object-fit:contain;border-radius:4px;">
+            </div>
+            {{-- Navigasi prev/next --}}
+            <div class="modal-footer border-0 justify-content-center pt-0 pb-2 gap-3">
+                <button type="button" class="btn btn-sm btn-outline-secondary" id="lightbox-prev">
+                    <i class="fa fa-chevron-left"></i> Sebelumnya
+                </button>
+                <span class="text-muted small" id="lightbox-counter"></span>
+                <button type="button" class="btn btn-sm btn-outline-secondary" id="lightbox-next">
+                    Berikutnya <i class="fa fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@push('scripts')
+<script>
+(function() {
+    var allThumbs = [];
+    var currentIdx = 0;
+
+    function buildGallery() {
+        allThumbs = [];
+        $('.lampiran-thumb').each(function() {
+            allThumbs.push({
+                src: $(this).data('src'),
+                nama: $(this).data('nama')
+            });
+            // simpan index di elemen agar bisa diklik
+            $(this).data('idx', allThumbs.length - 1);
+        });
+    }
+
+    function showLightbox(idx) {
+        if (idx < 0) idx = allThumbs.length - 1;
+        if (idx >= allThumbs.length) idx = 0;
+        currentIdx = idx;
+        var item = allThumbs[idx];
+        $('#lightbox-img').attr('src', item.src).attr('alt', item.nama);
+        $('#lightbox-nama').text(item.nama);
+        $('#lightbox-open-link').attr('href', item.src);
+        $('#lightbox-counter').text((idx + 1) + ' / ' + allThumbs.length);
+        $('#lightbox-prev, #lightbox-next').toggle(allThumbs.length > 1);
+    }
+
+    $(document).on('click', '.lampiran-thumb', function(e) {
+        e.preventDefault();
+        buildGallery();
+        showLightbox($(this).data('idx'));
+        $('#modalLightbox').modal('show');
+    });
+
+    $('#lightbox-prev').on('click', function() { showLightbox(currentIdx - 1); });
+    $('#lightbox-next').on('click', function() { showLightbox(currentIdx + 1); });
+
+    // navigasi keyboard
+    $('#modalLightbox').on('keydown', function(e) {
+        if (e.key === 'ArrowLeft')  showLightbox(currentIdx - 1);
+        if (e.key === 'ArrowRight') showLightbox(currentIdx + 1);
+    });
+})();
+</script>
+@endpush
 
 @endsection

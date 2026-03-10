@@ -208,5 +208,92 @@
     </table>
 
 </div>
+
+{{-- HALAMAN 2: LAMPIRAN FOTO --}}
+@if(!empty($lampiranPerItem) || !empty($lampiranBase64))
+<div class="page" style="page-break-before: always;">
+
+    {{-- Header ulang --}}
+    <table class="header-table">
+        <tr>
+            <td class="logo-cell">
+                <img src="{{ public_path('logo.jpg') }}" alt="Logo RS">
+            </td>
+            <td class="title-cell">
+                <div class="rs-name">RS. Royal Prima Jambi</div>
+                <div class="rs-address">
+                    Jl. Raden Wijaya RT 35 Kebun Kopi, Kel. Thehok, Kec. Jambi Selatan, Kota Jambi<br>
+                    Telp : 0741-41010, Fax : 0741-43295, Email : royal.prima@gmail.com
+                </div>
+            </td>
+            <td class="accreditation-cell">
+                <img src="{{ public_path('akre.png') }}" alt="Akreditasi" style="width:110px;">
+            </td>
+        </tr>
+    </table>
+
+    <hr>
+    <hr class="thin">
+
+    <div class="form-title" style="margin-bottom:4px;">Lampiran Foto</div>
+    <div style="text-align:center; font-size:13px; color:#555; margin-bottom:16px;">
+        {{ $usulan->nomor_usulan }} &mdash; {{ $usulan->ruangan->nama_ruangan ?? '' }}
+    </div>
+
+    {{-- Lampiran Per Item --}}
+    @foreach($lampiranPerItem as $itemGroup)
+    <div style="margin-bottom:16px;">
+        <div style="background:#f0f0f0; padding:5px 8px; font-weight:bold; font-size:13px; border-left:4px solid #333; margin-bottom:8px;">
+            Item {{ $itemGroup['no_urut'] }}: {{ $itemGroup['keterangan'] }}
+        </div>
+        <table style="width:100%; border-collapse:collapse;">
+            @php $chunks = array_chunk($itemGroup['fotos'], 2); @endphp
+            @foreach($chunks as $row)
+            <tr>
+                @foreach($row as $lmp)
+                <td style="width:50%; padding:6px; vertical-align:top; text-align:center;">
+                    <img src="{{ $lmp['base64'] }}"
+                         style="max-width:100%; max-height:220px; object-fit:contain; border:1px solid #ccc;">
+                    <div style="font-size:10px; color:#555; margin-top:3px; word-break:break-all;">
+                        {{ $lmp['nama_file'] }}
+                    </div>
+                </td>
+                @endforeach
+                @if(count($row) === 1)<td style="width:50%;"></td>@endif
+            </tr>
+            @endforeach
+        </table>
+    </div>
+    @endforeach
+
+    {{-- Lampiran Umum (jika ada) --}}
+    @if(!empty($lampiranBase64))
+    <div style="margin-top:16px;">
+        <div style="background:#f0f0f0; padding:5px 8px; font-weight:bold; font-size:13px; border-left:4px solid #333; margin-bottom:8px;">
+            Lampiran Umum
+        </div>
+        <table style="width:100%; border-collapse:collapse;">
+            @php $chunks = array_chunk($lampiranBase64, 2); @endphp
+            @foreach($chunks as $row)
+            <tr>
+                @foreach($row as $lmp)
+                <td style="width:50%; padding:6px; vertical-align:top; text-align:center;">
+                    <img src="{{ $lmp['base64'] }}"
+                         style="max-width:100%; max-height:220px; object-fit:contain; border:1px solid #ccc;">
+                    <div style="font-size:10px; color:#555; margin-top:3px; word-break:break-all;">
+                        {{ $lmp['nama_file'] }}
+                    </div>
+                </td>
+                @endforeach
+                @if(count($row) === 1)<td style="width:50%;"></td>@endif
+            </tr>
+            @endforeach
+        </table>
+    </div>
+    @endif
+
+</div>
+@endif
+
 </body>
 </html>

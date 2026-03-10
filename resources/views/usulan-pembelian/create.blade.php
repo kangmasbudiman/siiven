@@ -20,7 +20,7 @@
                 <div class="alert alert-danger">{{ session('error') }}</div>
             @endif
 
-            <form action="{{ route('usulan.store') }}" method="POST" id="form-usulan">
+            <form action="{{ route('usulan.store') }}" method="POST" id="form-usulan" enctype="multipart/form-data">
                 @csrf
 
                 {{-- Info Pengaju (otomatis dari profil login) --}}
@@ -77,10 +77,10 @@
                                 <tr>
                                     <th style="width:40px">No</th>
                                     <th>Keterangan / Nama Barang</th>
-                                    <th style="width:100px">Jumlah</th>
-                                    <th style="width:160px">Harga Satuan (Rp)</th>
-                                    <th style="width:160px">Jumlah (Rp)</th>
-                                    <th style="width:50px"></th>
+                                    <th style="width:80px">Jumlah</th>
+                                    <th style="width:140px">Harga Satuan (Rp)</th>
+                                    <th style="width:140px">Jumlah (Rp)</th>
+                                    <th style="width:40px"></th>
                                 </tr>
                             </thead>
                             <tbody id="items-body">
@@ -128,6 +128,19 @@
                     <label class="form-label">Keterangan Tambahan</label>
                     <textarea name="keterangan" class="form-control" rows="3"
                               placeholder="Tuliskan alasan / keterangan pengajuan...">{{ old('keterangan') }}</textarea>
+                </div>
+
+                {{-- Lampiran Foto --}}
+                <div class="card mb-3">
+                    <div class="card-header bg-light">
+                        <strong><i class="fa fa-paperclip me-1"></i>Lampiran Foto (Opsional)</strong>
+                        <small class="text-muted ms-2">Maks. 5 foto, tiap file maks. 5MB (JPG/PNG/GIF/WEBP)</small>
+                    </div>
+                    <div class="card-body">
+                        <input type="file" name="lampirans[]" id="input-lampiran" class="form-control"
+                               accept="image/*" multiple>
+                        <div id="preview-lampiran" class="d-flex flex-wrap gap-2 mt-3"></div>
+                    </div>
                 </div>
 
                 <div class="d-flex gap-2">
@@ -197,6 +210,35 @@ $(document).ready(function() {
         $(this).closest('tr').remove();
         updateRowNumbers();
         hitungTotal();
+    });
+
+    // Counter foto per item
+    $(document).on('change', '.item-lampiran-input', function() {
+        const count = this.files.length;
+        const countEl = $(this).closest('td').find('.item-lampiran-count');
+        countEl.text(count > 0 ? count + ' foto' : '');
+    });
+
+    // Preview lampiran umum
+    $('#input-lampiran').on('change', function() {
+        const preview = $('#preview-lampiran');
+        preview.empty();
+        const files = this.files;
+        if (files.length > 5) {
+            alert('Maksimal 5 foto.');
+            this.value = '';
+            return;
+        }
+        Array.from(files).forEach(function(file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                preview.append(`<div class="position-relative" style="width:120px;">
+                    <img src="${e.target.result}" class="img-thumbnail" style="width:120px;height:90px;object-fit:cover;">
+                    <div class="text-truncate small text-muted mt-1" style="max-width:120px">${file.name}</div>
+                </div>`);
+            };
+            reader.readAsDataURL(file);
+        });
     });
 });
 </script>

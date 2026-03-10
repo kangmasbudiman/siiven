@@ -35,7 +35,9 @@
       "Bash(php artisan tinker --execute=\"echo json_encode\\(Schema::getColumnListing\\(''ruangans''\\)\\);\")",
       "Bash(php artisan make:migration add_approver_id_to_ruangans_v2 --table=ruangans)",
       "Bash(php artisan tinker --execute=\"DB::table\\(''migrations''\\)->insert\\([''migration'' => ''2025_12_23_105935_create_ruangans_table'', ''batch'' => 10]\\);\")",
-      "Bash(php artisan tinker --execute=\"print_r\\(DB::select\\(''SHOW TABLES''\\)\\);\")"
+      "Bash(php artisan tinker --execute=\"print_r\\(DB::select\\(''SHOW TABLES''\\)\\);\")",
+      "Bash(php artisan migrate --path=database/migrations/2026_03_10_000001_create_lampiran_usulan_pembelians_table.php)",
+      "Bash(php artisan storage:link)"
     ]
   }
 }

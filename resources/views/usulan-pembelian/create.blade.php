@@ -80,6 +80,7 @@
                                     <th style="width:80px">Jumlah</th>
                                     <th style="width:140px">Harga Satuan (Rp)</th>
                                     <th style="width:140px">Jumlah (Rp)</th>
+                                    <th style="width:130px" class="text-center"><i class="fa fa-camera"></i> Foto</th>
                                     <th style="width:40px"></th>
                                 </tr>
                             </thead>
@@ -105,6 +106,14 @@
                                                value="{{ $item['harga_satuan'] ?? 0 }}">
                                     </td>
                                     <td class="text-end align-middle subtotal-cell fw-bold">Rp 0</td>
+                                    <td class="align-top" style="padding:6px;">
+                                        <div class="item-foto-preview d-flex flex-wrap gap-1 mb-1"></div>
+                                        <label class="btn btn-outline-secondary btn-sm mb-0" title="Tambah foto item">
+                                            <i class="fa fa-camera"></i>
+                                            <input type="file" name="item_lampirans[{{ $i }}][]"
+                                                   class="item-lampiran-input d-none" accept="image/*" multiple>
+                                        </label>
+                                    </td>
                                     <td class="text-center align-middle">
                                         <button type="button" class="btn btn-danger btn-sm btn-remove-row">
                                             <i class="fa fa-trash"></i>
@@ -117,6 +126,7 @@
                                 <tr class="table-light fw-bold">
                                     <td colspan="4" class="text-end">TOTAL</td>
                                     <td class="text-end" id="grand-total">Rp 0</td>
+                                    <td></td>
                                     <td></td>
                                 </tr>
                             </tfoot>
@@ -132,14 +142,16 @@
 
                 {{-- Lampiran Foto --}}
                 <div class="card mb-3">
-                    <div class="card-header bg-light">
-                        <strong><i class="fa fa-paperclip me-1"></i>Lampiran Foto (Opsional)</strong>
-                        <small class="text-muted ms-2">Maks. 5 foto, tiap file maks. 5MB (JPG/PNG/GIF/WEBP)</small>
+                    <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong><i class="fa fa-paperclip me-1"></i>Lampiran Foto (Opsional)</strong>
+                            <small class="text-muted ms-2">Maks. 5 foto, tiap file maks. 5MB (JPG/PNG/GIF/WEBP)</small>
+                        </div>
+                        <span id="lampiran-counter" class="badge bg-secondary">0 / 5</span>
                     </div>
                     <div class="card-body">
-                        <input type="file" name="lampirans[]" id="input-lampiran" class="form-control"
-                               accept="image/*" multiple>
-                        <div id="preview-lampiran" class="d-flex flex-wrap gap-2 mt-3"></div>
+                        <div id="lampiran-gallery" class="d-flex flex-wrap gap-2 align-items-start"></div>
+                        <input type="file" name="lampirans[]" id="input-lampiran" class="d-none" accept="image/jpeg,image/png,image/gif,image/webp" multiple>
                     </div>
                 </div>
 
@@ -197,6 +209,13 @@ $(document).ready(function() {
                 <td><input type="number" name="items[${rowIndex}][jumlah]" class="form-control form-control-sm jumlah-input" min="1" value="1"></td>
                 <td><input type="number" name="items[${rowIndex}][harga_satuan]" class="form-control form-control-sm harga-input" min="0" value="0"></td>
                 <td class="text-end align-middle subtotal-cell fw-bold">Rp 0</td>
+                <td class="align-top" style="padding:6px;">
+                    <div class="item-foto-preview d-flex flex-wrap gap-1 mb-1"></div>
+                    <label class="btn btn-outline-secondary btn-sm mb-0" title="Tambah foto item">
+                        <i class="fa fa-camera"></i>
+                        <input type="file" name="item_lampirans[${rowIndex}][]" class="item-lampiran-input d-none" accept="image/*" multiple>
+                    </label>
+                </td>
                 <td class="text-center align-middle"><button type="button" class="btn btn-danger btn-sm btn-remove-row"><i class="fa fa-trash"></i></button></td>
             </tr>`;
         $('#items-body').append(html);
@@ -212,34 +231,101 @@ $(document).ready(function() {
         hitungTotal();
     });
 
-    // Counter foto per item
+    // Preview foto per item (thumbnail seperti halaman detail)
     $(document).on('change', '.item-lampiran-input', function() {
-        const count = this.files.length;
-        const countEl = $(this).closest('td').find('.item-lampiran-count');
-        countEl.text(count > 0 ? count + ' foto' : '');
-    });
-
-    // Preview lampiran umum
-    $('#input-lampiran').on('change', function() {
-        const preview = $('#preview-lampiran');
-        preview.empty();
-        const files = this.files;
-        if (files.length > 5) {
-            alert('Maksimal 5 foto.');
-            this.value = '';
-            return;
-        }
-        Array.from(files).forEach(function(file) {
+        const previewBox = $(this).closest('td').find('.item-foto-preview');
+        previewBox.empty();
+        Array.from(this.files).forEach(function(file) {
             const reader = new FileReader();
             reader.onload = function(e) {
-                preview.append(`<div class="position-relative" style="width:120px;">
-                    <img src="${e.target.result}" class="img-thumbnail" style="width:120px;height:90px;object-fit:cover;">
-                    <div class="text-truncate small text-muted mt-1" style="max-width:120px">${file.name}</div>
-                </div>`);
+                previewBox.append(
+                    `<div class="position-relative">
+                        <img src="${e.target.result}"
+                             style="width:50px;height:38px;object-fit:cover;border-radius:3px;border:1px solid #ccc;"
+                             title="${file.name}">
+                    </div>`
+                );
             };
             reader.readAsDataURL(file);
         });
     });
+
+    // === Multi-image lampiran gallery ===
+    let lampiranItems = [];
+    const MAX_LAMPIRAN = 5;
+
+    function renderLampiranGallery() {
+        const gallery = $('#lampiran-gallery');
+        gallery.empty();
+
+        lampiranItems.forEach(function(item, idx) {
+            gallery.append(`
+                <div class="lampiran-thumb position-relative" style="width:120px;">
+                    <img src="${item.dataUrl}" class="img-thumbnail"
+                         style="width:120px;height:90px;object-fit:cover;cursor:pointer;"
+                         onclick="window.open('${item.dataUrl}','_blank')">
+                    <button type="button" class="btn btn-danger btn-sm position-absolute top-0 end-0 p-0 lampiran-remove-btn"
+                            style="width:22px;height:22px;font-size:10px;line-height:1;" data-idx="${idx}">
+                        <i class="fa fa-times"></i>
+                    </button>
+                    <div class="text-truncate small text-muted mt-1" style="max-width:120px" title="${item.file.name}">${item.file.name}</div>
+                </div>
+            `);
+        });
+
+        if (lampiranItems.length < MAX_LAMPIRAN) {
+            gallery.append(`
+                <div id="lampiran-add-btn" onclick="document.getElementById('input-lampiran').click()"
+                     style="width:120px;height:90px;border:2px dashed #adb5bd;border-radius:6px;cursor:pointer;color:#6c757d;display:flex;align-items:center;justify-content:center;">
+                    <div class="text-center">
+                        <i class="fa fa-plus fa-lg"></i>
+                        <div class="small mt-1">Tambah Foto</div>
+                    </div>
+                </div>
+            `);
+        }
+
+        $('#lampiran-counter').text(`${lampiranItems.length} / ${MAX_LAMPIRAN}`);
+
+        const dt = new DataTransfer();
+        lampiranItems.forEach(item => dt.items.add(item.file));
+        document.getElementById('input-lampiran').files = dt.files;
+    }
+
+    $('#input-lampiran').on('change', function() {
+        const newFiles = Array.from(this.files);
+        const remaining = MAX_LAMPIRAN - lampiranItems.length;
+        if (newFiles.length > remaining) {
+            alert(`Hanya bisa menambahkan ${remaining} foto lagi (maks. ${MAX_LAMPIRAN}).`);
+        }
+        const toProcess = newFiles.slice(0, remaining);
+        let processed = 0;
+        if (toProcess.length === 0) { this.value = ''; return; }
+
+        toProcess.forEach(function(file) {
+            if (file.size > 5 * 1024 * 1024) {
+                alert(`File "${file.name}" melebihi 5MB dan dilewati.`);
+                processed++;
+                if (processed === toProcess.length) renderLampiranGallery();
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                lampiranItems.push({ file: file, dataUrl: e.target.result });
+                processed++;
+                if (processed === toProcess.length) renderLampiranGallery();
+            };
+            reader.readAsDataURL(file);
+        });
+        this.value = '';
+    });
+
+    $(document).on('click', '.lampiran-remove-btn', function() {
+        lampiranItems.splice(parseInt($(this).data('idx')), 1);
+        renderLampiranGallery();
+    });
+
+    renderLampiranGallery();
 });
 </script>
 @endpush

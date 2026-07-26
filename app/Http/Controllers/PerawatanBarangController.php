@@ -12,6 +12,45 @@ use Illuminate\Support\Str;
 
 class PerawatanBarangController extends Controller
 {
+    public function index(Request $request)
+    {
+        $query = PerawatanBarang::with([
+            'stockBarang.barang',
+            'stockBarang.ruangan',
+            'teknisi',
+        ])->latestFirst();
+
+        if ($request->filled('dari')) {
+            $query->where('tanggal', '>=', $request->dari);
+        }
+        if ($request->filled('sampai')) {
+            $query->where('tanggal', '<=', $request->sampai);
+        }
+        if ($request->filled('jenis')) {
+            $query->where('jenis_perawatan', $request->jenis);
+        }
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+        if ($request->filled('ruangan_id')) {
+            $query->whereHas('stockBarang', function ($q) use ($request) {
+                $q->where('ruangan_id', $request->ruangan_id);
+            });
+        }
+        if ($request->filled('q')) {
+            $q = $request->q;
+            $query->whereHas('stockBarang.barang', function ($sub) use ($q) {
+                $sub->where('nama_barang', 'like', "%{$q}%")
+                    ->orWhere('kode_barang', 'like', "%{$q}%");
+            });
+        }
+
+        $riwayat = $query->paginate(25)->appends($request->query());
+        $ruangans = Ruangan::orderBy('nama_ruangan')->get();
+
+        return view('perawatan.index', compact('riwayat', 'ruangans'));
+    }
+
     public function scan(Request $request)
     {
         $code = trim($request->query('code', ''));

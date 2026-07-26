@@ -482,6 +482,7 @@ Route::prefix('/shiftsession')->name('shiftsession.')->group(function ()
 
 	// Perawatan Barang via Scan Barcode (admin, gudang, teknisi)
 	Route::prefix('/perawatan')->name('perawatan.')->middleware('can:isAdminGudangTeknisi')->group(function () {
+		Route::get('/', 'PerawatanBarangController@index')->name('index');
 		Route::get('/scan', 'PerawatanBarangController@scan')->name('scan');
 		Route::post('/lookup', 'PerawatanBarangController@lookup')->name('lookup');
 

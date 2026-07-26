@@ -157,15 +157,17 @@
                     </a>
                     <ul class="sub-menu children dropdown-menu">
                         <li>
+                            <i class="menu-icon fa fa-history"></i>
+                            <a href="{{ route('perawatan.index') }}">Riwayat Perawatan</a>
+                        </li>
+                        <li>
                             <i class="menu-icon fa fa-qrcode"></i>
                             <a href="{{ route('perawatan.scan') }}">Scan Barcode</a>
                         </li>
-                        @can('isAdminGudangTeknisi')
                         <li>
                             <i class="menu-icon fa fa-print"></i>
                             <a href="{{ route('perawatan.barcode.batch') }}">Cetak Massal Barcode</a>
                         </li>
-                        @endcan
                     </ul>
                 </li>
                 @endcan

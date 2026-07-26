@@ -79,7 +79,10 @@
                                 @continue
                             @endif
                             @php
-                                $urlPublik = rtrim(config('app.url', request()->getSchemeAndHttpHost()), '/') . '/public/perawatan/scan?code=' . urlencode($kodeInv);
+                                $appUrl = config('app.url', '');
+                                $isLocal = empty($appUrl) || stripos($appUrl, 'localhost') !== false || strpos($appUrl, '127.0.0.1') !== false;
+                                $base = $isLocal ? request()->getSchemeAndHttpHost() : rtrim($appUrl, '/');
+                                $urlPublik = $base . '/public/perawatan/scan?code=' . urlencode($kodeInv);
                             @endphp
                             <div class="col-12 col-sm-6 col-md-4 mb-3">
                                 <div class="border p-3 bg-white text-center label-box" style="page-break-inside: avoid;">

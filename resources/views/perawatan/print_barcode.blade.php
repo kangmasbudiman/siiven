@@ -48,7 +48,10 @@
                     <div class="col-6">
                         <div class="qr-frame-single">
                             @php
-                                $urlPublik = rtrim(config('app.url', request()->getSchemeAndHttpHost()), '/') . '/public/perawatan/scan?code=' . urlencode($stock->nomorInventaris);
+                                $appUrl = config('app.url', '');
+                                $isLocal = empty($appUrl) || stripos($appUrl, 'localhost') !== false || strpos($appUrl, '127.0.0.1') !== false;
+                                $base = $isLocal ? request()->getSchemeAndHttpHost() : rtrim($appUrl, '/');
+                                $urlPublik = $base . '/public/perawatan/scan?code=' . urlencode($stock->nomorInventaris);
                                 $qrPublik = DNS2D::getBarcodePNG($urlPublik, 'QRCODE', 5, 5);
                             @endphp
                             <img src="data:image/png;base64,{{ $qrPublik }}"

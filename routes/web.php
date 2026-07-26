@@ -479,6 +479,24 @@ Route::prefix('/shiftsession')->name('shiftsession.')->group(function ()
 	Route::resource('/cash', 'CashController')->except(['create', 'edit', 'show'])->middleware('can:isAdmin');
 	Route::resource('/category_finance', 'CategoryFinanceController')->except(['create', 'edit', 'show'])->middleware('can:isAdmin');
 	Route::resource('/opname', 'OpnameController')->except(['show', 'update'])->middleware('can:isAdmin');
+
+	// Perawatan Barang via Scan Barcode (admin, gudang, teknisi)
+	Route::prefix('/perawatan')->name('perawatan.')->middleware('can:isAdminGudangTeknisi')->group(function () {
+		Route::get('/scan', 'PerawatanBarangController@scan')->name('scan');
+		Route::post('/lookup', 'PerawatanBarangController@lookup')->name('lookup');
+
+		Route::get('/stock/{stockId}/create', 'PerawatanBarangController@create')->name('create');
+		Route::post('/stock/{stockId}', 'PerawatanBarangController@store')->name('store');
+		Route::get('/stock/{stockId}/history', 'PerawatanBarangController@history')->name('history');
+
+		Route::get('/{id}', 'PerawatanBarangController@show')->name('show');
+
+		// Print barcode (admin, gudang, teknisi)
+		Route::get('/barcode/{stockId}/print', 'PerawatanBarangController@printBarcode')
+			->name('barcode.print');
+		Route::get('/barcode/batch', 'PerawatanBarangController@printBarcodeBatch')
+			->name('barcode.batch');
+	});
 });
 
 Route::namespace('Auth')->group(function ()

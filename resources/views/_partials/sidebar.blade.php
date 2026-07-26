@@ -115,7 +115,8 @@
 
                 @endif {{-- end non-approver menus --}}
 
-                {{-- Menu Usulan Pembelian (semua user yang login) --}}
+                {{-- Menu Usulan Pembelian (semua user kecuali teknisi) --}}
+                @cannot('isTeknisi')
                 <li class="menu-item-has-children dropdown {{ active('usulan-pembelian', 'group', 'active') }}">
                     <a href="#" class="dropdown-toggle" data-toggle="dropdown">
                         <i class="menu-icon fa fa-file-text-o"></i>
@@ -145,6 +146,29 @@
                         @endif
                     </ul>
                 </li>
+                @endcannot
+
+                {{-- Menu Maintenance / Perawatan Barang --}}
+                @can('isAdminGudangTeknisi')
+                <li class="menu-item-has-children dropdown {{ active('perawatan', 'group', 'active') }}">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                        <i class="menu-icon fa fa-wrench"></i>
+                        Maintenance
+                    </a>
+                    <ul class="sub-menu children dropdown-menu">
+                        <li>
+                            <i class="menu-icon fa fa-qrcode"></i>
+                            <a href="{{ route('perawatan.scan') }}">Scan Barcode</a>
+                        </li>
+                        @can('isAdminGudangTeknisi')
+                        <li>
+                            <i class="menu-icon fa fa-print"></i>
+                            <a href="{{ route('perawatan.barcode.batch') }}">Cetak Massal Barcode</a>
+                        </li>
+                        @endcan
+                    </ul>
+                </li>
+                @endcan
 
                 <li
                     class="menu-item-has-children dropdown {{ active('change_password', false, 'active') }} {{ active('ppn', false, 'active') }} {{ active('setting', false, 'active') }} {{ active('user', 'group', 'active') }}">

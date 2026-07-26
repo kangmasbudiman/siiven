@@ -35,7 +35,7 @@ class UpdateUserRequest extends FormRequest
             'username'       => 'required|string',
             'alamat'         => 'required|string',
             'telepon'        => 'required|numeric',
-            'hakAkses'       => 'required|in:1,2,3',
+            'hakAkses'       => 'required|in:1,2,3,4',
             'approval_level' => 'nullable|in:1,2,3,4',
             'jabatan'        => 'nullable|string|max:100',
         ];

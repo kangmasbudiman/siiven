@@ -50,6 +50,18 @@ class AuthServiceProvider extends ServiceProvider
             return $user->hakAkses == '1' || $user->hakAkses == '3';
         });
 
+        // Teknisi maintenance (scan barcode, input perawatan barang)
+        Gate::define('isTeknisi', function ($user)
+        {
+            return $user->hakAkses == '4';
+        });
+
+        // Akses maintenance: admin, gudang, atau teknisi
+        Gate::define('isAdminGudangTeknisi', function ($user)
+        {
+            return in_array($user->hakAkses, ['1', '3', '4']);
+        });
+
         // Gates untuk approval usulan pembelian
         Gate::define('canApproveLevel1', function ($user) {
             return $user->approval_level == 1 || $user->hakAkses == '1';

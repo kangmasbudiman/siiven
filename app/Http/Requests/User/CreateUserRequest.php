@@ -37,7 +37,7 @@ class CreateUserRequest extends FormRequest
             'alamat'         => 'required|string',
             'telepon'        => 'required|numeric',
             'password'       => 'required|string',
-            'hakAkses'       => 'required|in:1,2,3',
+            'hakAkses'       => 'required|in:1,2,3,4',
             'approval_level' => 'nullable|in:1,2,3,4',
             'jabatan'        => 'nullable|string|max:100',
         ];

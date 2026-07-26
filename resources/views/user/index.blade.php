@@ -63,6 +63,7 @@
 					<option value="1">Super Admin</option>
 					<option value="2">Admin</option>
 					<option value="3">Gudang</option>
+					<option value="4">Teknisi Maintenance</option>
 				</select>
 				<span class="invalid-feedback"></span>
 			</div>

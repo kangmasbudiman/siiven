@@ -26,9 +26,11 @@ jQuery(function ($) {
 					const badges = [
 						{ color: 'primary', text: 'super admin' },
 						{ color: 'warning', text: 'admin' },
-						{ color: 'danger',  text: 'gudang' }
+						{ color: 'danger',  text: 'gudang' },
+						{ color: 'info',    text: 'teknisi' }
 					]
 					const badge = badges[data-1]
+					if (!badge) return '-'
 					return `<span class="badge badge-${badge.color}">${badge.text}</span>`
 				}
 			},

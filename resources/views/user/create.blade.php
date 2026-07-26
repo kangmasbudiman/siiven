@@ -35,7 +35,9 @@
 							<option value="1">Super Admin</option>
 							<option value="2">Admin</option>
 							<option value="3">Gudang</option>
+							<option value="4">Teknisi Maintenance</option>
 						</select>
+						<small class="text-muted">Teknisi hanya bisa akses menu Maintenance (scan barcode & input perawatan).</small>
 
 						@error('hakAkses')
 							<span class="invalid-feedback">{{ $message }}</span>

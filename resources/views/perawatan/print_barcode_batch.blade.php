@@ -82,27 +82,27 @@
                                 $urlPublik = rtrim(config('app.url', request()->getSchemeAndHttpHost()), '/') . '/public/perawatan/scan?code=' . urlencode($kodeInv);
                             @endphp
                             <div class="col-12 col-sm-6 col-md-4 mb-3">
-                                <div class="border p-2 bg-white text-center label-box" style="page-break-inside: avoid;">
-                                    <div class="small font-weight-bold text-uppercase">{{ site('nama_toko') }}</div>
-                                    <div class="d-flex justify-content-center align-items-center gap-1 my-1">
-                                        <div class="text-center">
+                                <div class="border p-3 bg-white text-center label-box" style="page-break-inside: avoid;">
+                                    <div class="small font-weight-bold text-uppercase mb-2">{{ site('nama_toko') }}</div>
+                                    <div class="d-flex justify-content-around align-items-stretch mb-2">
+                                        <div class="text-center qr-frame">
                                             <img src="data:image/png;base64,{{ DNS2D::getBarcodePNG($kodeInv, 'QRCODE', 3, 3) }}"
-                                                 style="width:85px; height:85px;" alt="QR Internal">
-                                            <div style="font-size:8px; line-height:1;" class="text-muted mt-1">
-                                                <i class="fa fa-wrench"></i> Teknisi
+                                                 style="width:90px; height:90px;" alt="QR Internal">
+                                            <div style="font-size:8px; line-height:1.1;" class="text-muted mt-1 font-weight-bold">
+                                                <i class="fa fa-wrench"></i> TEKNISI
                                             </div>
                                         </div>
-                                        <div class="text-center">
+                                        <div class="text-center qr-frame">
                                             <img src="data:image/png;base64,{{ DNS2D::getBarcodePNG($urlPublik, 'QRCODE', 3, 3) }}"
-                                                 style="width:85px; height:85px;" alt="QR Publik">
-                                            <div style="font-size:8px; line-height:1;" class="text-muted mt-1">
-                                                <i class="fa fa-users"></i> Umum
+                                                 style="width:90px; height:90px;" alt="QR Publik">
+                                            <div style="font-size:8px; line-height:1.1;" class="text-muted mt-1 font-weight-bold">
+                                                <i class="fa fa-users"></i> UMUM
                                             </div>
                                         </div>
                                     </div>
-                                    <div style="font-size:9px; word-break:break-all; line-height:1.1;">{{ $kodeInv }}</div>
-                                    <hr class="my-1">
-                                    <div style="font-size:11px"><strong>{{ \Illuminate\Support\Str::limit($stock->barang->nama_barang ?? '-', 32) }}</strong></div>
+                                    <div style="font-size:9px; word-break:break-all; line-height:1.2;">{{ $kodeInv }}</div>
+                                    <hr class="my-2">
+                                    <div style="font-size:11px" class="font-weight-bold">{{ \Illuminate\Support\Str::limit($stock->barang->nama_barang ?? '-', 32) }}</div>
                                     <div style="font-size:10px" class="text-muted">{{ $stock->ruangan->nama_ruangan ?? '' }}</div>
                                 </div>
                             </div>
@@ -115,12 +115,32 @@
 </div>
 
 <style>
+    .qr-frame {
+        border: 1.5px solid #333 !important;
+        border-radius: 8px;
+        padding: 8px 6px 4px;
+        margin: 0 6px;
+        background: #fff;
+        min-width: 105px;
+    }
+    .label-box {
+        border: 2px solid #0d47a1 !important;
+        border-radius: 10px;
+    }
     @@media print {
         body * { visibility: hidden; }
         #batch-area, #batch-area * { visibility: visible; }
         #batch-area { position: absolute; top: 0; left: 0; width: 100%; }
         .card-header, .btn, .alert, form, .no-print { display: none !important; }
-        .label-box { border: 0.5px dashed #999 !important; }
+        .label-box {
+            border: 1.5px solid #0d47a1 !important;
+            page-break-inside: avoid;
+        }
+        .qr-frame {
+            border: 1px solid #000 !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
     }
 </style>
 @endsection

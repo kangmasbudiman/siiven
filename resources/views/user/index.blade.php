@@ -154,6 +154,6 @@
 		const csrf = '{{ csrf_token() }}'
 	</script>
 
-	<script src="{{ asset('js/user.js') }}"></script>
+	<script src="{{ asset('js/user.js') }}?v={{ filemtime(public_path('js/user.js')) }}"></script>
 
 @endpush

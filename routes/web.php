@@ -511,6 +511,13 @@ Route::namespace('Auth')->group(function ()
 // Public: Verifikasi QR Code tanda tangan digital (tanpa login)
 Route::get('/verify/{token}', 'VerifikasiController@verify')->name('verify');
 
+// Public: Scan barcode untuk lihat riwayat perawatan barang (read-only, tanpa login)
+Route::prefix('/public/perawatan')->name('public.perawatan.')->group(function () {
+	Route::get('/scan', 'PublicPerawatanController@scan')->name('scan');
+	Route::post('/lookup', 'PublicPerawatanController@lookup')->name('lookup');
+	Route::get('/stock/{stockId}', 'PublicPerawatanController@show')->name('show');
+});
+
 // API: cek jumlah pending approval (untuk polling notifikasi suara)
 Route::middleware('auth')->get('/api/pending-approval-count', function () {
     $user = auth()->user();

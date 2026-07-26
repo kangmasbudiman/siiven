@@ -55,9 +55,11 @@
 
             <div class="alert alert-info py-2 small no-print">
                 <i class="fa fa-info-circle mr-1"></i>
+                <strong>Dual QR Code:</strong> QR kiri = untuk teknisi (scan di sistem internal, wajib login) &middot;
+                QR kanan = untuk umum (scan pakai HP biasa, langsung ke halaman riwayat).
                 Total: <strong>{{ $stocks->count() }}</strong> item siap dicetak.
                 @if(request('ruangan_id'))
-                    Filter aktif: <strong>{{ optional(\App\Models\Ruangan::find(request('ruangan_id')))->nama_ruangan }}</strong>
+                    &middot; Filter: <strong>{{ optional(\App\Models\Ruangan::find(request('ruangan_id')))->nama_ruangan }}</strong>
                 @endif
             </div>
 
@@ -76,14 +78,31 @@
                             @if($kodeInv === '')
                                 @continue
                             @endif
-                            <div class="col-12 col-sm-6 col-md-3 mb-3">
+                            @php
+                                $urlPublik = rtrim(config('app.url', request()->getSchemeAndHttpHost()), '/') . '/public/perawatan/scan?code=' . urlencode($kodeInv);
+                            @endphp
+                            <div class="col-12 col-sm-6 col-md-4 mb-3">
                                 <div class="border p-2 bg-white text-center label-box" style="page-break-inside: avoid;">
                                     <div class="small font-weight-bold text-uppercase">{{ site('nama_toko') }}</div>
-                                    <img src="data:image/png;base64,{{ DNS2D::getBarcodePNG($kodeInv, 'QRCODE', 4, 4) }}"
-                                         style="width:130px; height:130px;" alt="QR">
-                                    <div style="font-size:10px; word-break:break-all;">{{ $kodeInv }}</div>
+                                    <div class="d-flex justify-content-center align-items-center gap-1 my-1">
+                                        <div class="text-center">
+                                            <img src="data:image/png;base64,{{ DNS2D::getBarcodePNG($kodeInv, 'QRCODE', 3, 3) }}"
+                                                 style="width:85px; height:85px;" alt="QR Internal">
+                                            <div style="font-size:8px; line-height:1;" class="text-muted mt-1">
+                                                <i class="fa fa-wrench"></i> Teknisi
+                                            </div>
+                                        </div>
+                                        <div class="text-center">
+                                            <img src="data:image/png;base64,{{ DNS2D::getBarcodePNG($urlPublik, 'QRCODE', 3, 3) }}"
+                                                 style="width:85px; height:85px;" alt="QR Publik">
+                                            <div style="font-size:8px; line-height:1;" class="text-muted mt-1">
+                                                <i class="fa fa-users"></i> Umum
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div style="font-size:9px; word-break:break-all; line-height:1.1;">{{ $kodeInv }}</div>
                                     <hr class="my-1">
-                                    <div style="font-size:11px"><strong>{{ \Illuminate\Support\Str::limit($stock->barang->nama_barang ?? '-', 28) }}</strong></div>
+                                    <div style="font-size:11px"><strong>{{ \Illuminate\Support\Str::limit($stock->barang->nama_barang ?? '-', 32) }}</strong></div>
                                     <div style="font-size:10px" class="text-muted">{{ $stock->ruangan->nama_ruangan ?? '' }}</div>
                                 </div>
                             </div>

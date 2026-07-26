@@ -33,12 +33,26 @@
                     <div><small>Rumah Sakit</small></div>
                 </div>
 
-                <div class="text-center">
-                    @php
-                        $qr = DNS2D::getBarcodePNG($stock->nomorInventaris, 'QRCODE', 6, 6);
-                    @endphp
-                    <img src="data:image/png;base64,{{ $qr }}"
-                         style="width:200px; height:200px;" alt="QR">
+                <div class="row text-center mb-2">
+                    <div class="col-6">
+                        @php
+                            $qrInternal = DNS2D::getBarcodePNG($stock->nomorInventaris, 'QRCODE', 5, 5);
+                        @endphp
+                        <img src="data:image/png;base64,{{ $qrInternal }}"
+                             style="width:150px; height:150px;" alt="QR Internal">
+                        <div class="small mt-1"><i class="fa fa-wrench mr-1"></i><strong>Teknisi</strong></div>
+                        <div class="small text-muted">Scan di sistem internal</div>
+                    </div>
+                    <div class="col-6">
+                        @php
+                            $urlPublik = rtrim(config('app.url', request()->getSchemeAndHttpHost()), '/') . '/public/perawatan/scan?code=' . urlencode($stock->nomorInventaris);
+                            $qrPublik = DNS2D::getBarcodePNG($urlPublik, 'QRCODE', 5, 5);
+                        @endphp
+                        <img src="data:image/png;base64,{{ $qrPublik }}"
+                             style="width:150px; height:150px;" alt="QR Publik">
+                        <div class="small mt-1"><i class="fa fa-users mr-1"></i><strong>Umum</strong></div>
+                        <div class="small text-muted">Scan pakai HP biasa</div>
+                    </div>
                 </div>
 
                 <div class="mt-3">

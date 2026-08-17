@@ -498,6 +498,20 @@ Route::prefix('/shiftsession')->name('shiftsession.')->group(function ()
 		Route::get('/barcode/batch', 'PerawatanBarangController@printBarcodeBatch')
 			->name('barcode.batch');
 	});
+
+	// Modul Gudang Logistik (admin + logistik)
+	Route::prefix('/logistik')->name('logistik.')->middleware('can:isAdminLogistik')->group(function () {
+		Route::get('/', 'LogistikController@index')->name('index');
+		Route::get('/pemasukan', 'LogistikController@createPemasukan')->name('pemasukan.create');
+		Route::post('/pemasukan', 'LogistikController@storePemasukan')->name('pemasukan.store');
+		Route::get('/pengeluaran', 'LogistikController@createPengeluaran')->name('pengeluaran.create');
+		Route::post('/pengeluaran', 'LogistikController@storePengeluaran')->name('pengeluaran.store');
+		Route::get('/riwayat', 'LogistikController@riwayat')->name('riwayat');
+		Route::get('/riwayat/detail/{kode}', 'LogistikController@riwayatDetail')->name('riwayat.detail');
+		Route::get('/laporan', 'LogistikController@laporan')->name('laporan');
+		Route::get('/laporan/pdf', 'LogistikController@laporanPdf')->name('laporan.pdf');
+		Route::get('/laporan/excel', 'LogistikController@laporanExcel')->name('laporan.excel');
+	});
 });
 
 Route::namespace('Auth')->group(function ()

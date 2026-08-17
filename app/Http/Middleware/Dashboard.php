@@ -27,6 +27,8 @@ class Dashboard
             return redirect()->route('stuff.index');
         } else if ($user->can('isKasir')) {
             return redirect()->route('transaction.index');
+        } else if ($user->can('isLogistik')) {
+            return redirect()->route('logistik.index');
         }
 
         return $next($request);

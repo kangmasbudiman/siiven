@@ -62,6 +62,18 @@ class AuthServiceProvider extends ServiceProvider
             return in_array($user->hakAkses, ['1', '3', '4']);
         });
 
+        // Gudang logistik RS (pemasukan/pengeluaran barang)
+        Gate::define('isLogistik', function ($user)
+        {
+            return $user->hakAkses == '5';
+        });
+
+        // Akses modul logistik: admin atau logistik
+        Gate::define('isAdminLogistik', function ($user)
+        {
+            return in_array($user->hakAkses, ['1', '5']);
+        });
+
         // Gates untuk approval usulan pembelian
         Gate::define('canApproveLevel1', function ($user) {
             return $user->approval_level == 1 || $user->hakAkses == '1';

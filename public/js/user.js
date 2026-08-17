@@ -27,7 +27,8 @@ jQuery(function ($) {
 						{ color: 'primary', text: 'super admin' },
 						{ color: 'warning', text: 'admin' },
 						{ color: 'danger',  text: 'gudang' },
-						{ color: 'info',    text: 'teknisi' }
+						{ color: 'info',    text: 'teknisi' },
+						{ color: 'success', text: 'logistik' }
 					]
 					const badge = badges[data-1]
 					if (!badge) return '-'

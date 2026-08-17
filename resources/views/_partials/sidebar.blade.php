@@ -172,6 +172,38 @@
                 </li>
                 @endcan
 
+                {{-- Menu Gudang Logistik --}}
+                @can('isAdminLogistik')
+                <li class="menu-item-has-children dropdown {{ active('logistik', 'group', 'active') }}">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                        <i class="menu-icon fa fa-truck"></i>
+                        Logistik
+                    </a>
+                    <ul class="sub-menu children dropdown-menu">
+                        <li>
+                            <i class="menu-icon fa fa-boxes"></i>
+                            <a href="{{ route('logistik.index') }}">Stok Gudang</a>
+                        </li>
+                        <li>
+                            <i class="menu-icon fa fa-arrow-down"></i>
+                            <a href="{{ route('logistik.pemasukan.create') }}">Pemasukan Barang</a>
+                        </li>
+                        <li>
+                            <i class="menu-icon fa fa-arrow-up"></i>
+                            <a href="{{ route('logistik.pengeluaran.create') }}">Pengeluaran Barang</a>
+                        </li>
+                        <li>
+                            <i class="menu-icon fa fa-history"></i>
+                            <a href="{{ route('logistik.riwayat') }}">Kartu Stok</a>
+                        </li>
+                        <li>
+                            <i class="menu-icon fa fa-file-alt"></i>
+                            <a href="{{ route('logistik.laporan') }}">Laporan</a>
+                        </li>
+                    </ul>
+                </li>
+                @endcan
+
                 <li
                     class="menu-item-has-children dropdown {{ active('change_password', false, 'active') }} {{ active('ppn', false, 'active') }} {{ active('setting', false, 'active') }} {{ active('user', 'group', 'active') }}">
                     <a href="#" class="dropdown-toggle" data-toggle="dropdown">

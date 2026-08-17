@@ -30,14 +30,20 @@ class UpdateUserRequest extends FormRequest
      */
     public function rules()
     {
-        return [
+        $rules = [
             'nama'           => 'required|string',
             'username'       => 'required|string',
             'alamat'         => 'required|string',
             'telepon'        => 'required|numeric',
-            'hakAkses'       => 'required|in:1,2,3,4',
+            'hakAkses'       => 'required|in:1,2,3,4,5',
             'approval_level' => 'nullable|in:1,2,3,4',
             'jabatan'        => 'nullable|string|max:100',
         ];
+
+        if ($this->input('hakAkses') == '5') {
+            $rules['ruangan_id'] = 'required|exists:ruangans,id,jenis_ruangan,logistik';
+        }
+
+        return $rules;
     }
 }

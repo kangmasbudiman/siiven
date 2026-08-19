@@ -141,6 +141,7 @@
                                 <option value="">-- Pilih Jenis Barang --</option>
                                 <option value="BHP">BHP</option>
                                 <option value="Aset">Aset</option>
+                                <option value="Alat Rumah Tangga">Alat Rumah Tangga</option>
                             </select>
                         </div>
                         <!-- Merk -->
@@ -229,6 +230,7 @@
                                 <option value="">-- Pilih Jenis Barang --</option>
                                 <option value="Aset">Aset</option>
                                 <option value="BHP">BHP</option>
+                                <option value="Alat Rumah Tangga">Alat Rumah Tangga</option>
                             </select>
                         </div>
                         <!-- Merk -->

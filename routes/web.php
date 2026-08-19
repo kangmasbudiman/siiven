@@ -511,6 +511,7 @@ Route::prefix('/shiftsession')->name('shiftsession.')->group(function ()
 		Route::get('/laporan', 'LogistikController@laporan')->name('laporan');
 		Route::get('/laporan/pdf', 'LogistikController@laporanPdf')->name('laporan.pdf');
 		Route::get('/laporan/excel', 'LogistikController@laporanExcel')->name('laporan.excel');
+		Route::post('/barang', 'LogistikController@storeBarangQuick')->name('barang.store');
 	});
 });
 

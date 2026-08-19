@@ -117,7 +117,13 @@
                     <h5 class="modal-title">
                         <i class="fas fa-search me-1"></i> Cari Barang
                     </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                    <div class="d-flex align-items-center gap-2">
+                        <button type="button" id="btn-buka-tambah" class="btn btn-sm btn-success"
+                            data-bs-toggle="modal" data-bs-target="#modalTambahBarang">
+                            <i class="fas fa-plus me-1"></i> Tambah Barang Baru
+                        </button>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                    </div>
                 </div>
                 <div class="modal-body">
                     <input type="text" id="modal-cari" class="form-control form-control-lg mb-3"
@@ -161,6 +167,71 @@
                         Tidak ada barang yang cocok dengan pencarian.
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalTambahBarang" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form id="form-tambah-barang" autocomplete="off">
+                    <div class="modal-header">
+                        <h5 class="modal-title">
+                            <i class="fas fa-plus me-1"></i> Tambah Barang Baru
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div id="barang-error" class="alert alert-danger py-2 d-none"></div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Nama Barang <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="nama_barang" maxlength="255" required>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-6 mb-3">
+                                <label class="form-label">Kategori <span class="text-danger">*</span></label>
+                                <select class="form-control" name="kategori_id" required>
+                                    <option value="">- Pilih Kategori -</option>
+                                    @foreach ($kategoris as $kategori)
+                                        <option value="{{ $kategori->id }}">{{ $kategori->nama_kategori }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-sm-6 mb-3">
+                                <label class="form-label">Satuan <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="satuan" maxlength="255"
+                                    placeholder="cth: unit, box, pcs" required>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-6 mb-3">
+                                <label class="form-label">Jenis Barang <span class="text-danger">*</span></label>
+                                <select class="form-control" name="jenis_barang" required>
+                                    <option value="">-- Pilih Jenis Barang --</option>
+                                    <option value="Aset">Aset</option>
+                                    <option value="BHP">BHP</option>
+                                    <option value="Alat Rumah Tangga">Alat Rumah Tangga</option>
+                                </select>
+                            </div>
+                            <div class="col-sm-6 mb-3">
+                                <label class="form-label">Merk <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="merk" maxlength="255" required>
+                            </div>
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label">Spesifikasi <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="spesifikasi" maxlength="255" required>
+                        </div>
+                        <div class="form-text">Kode barang dibuat otomatis oleh sistem, status langsung aktif.</div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-1"></i> Simpan &amp; Pilih
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
@@ -286,6 +357,85 @@
 
             cariInput.addEventListener('input', filterBarang);
             modalEl.addEventListener('shown.bs.modal', function () { cariInput.focus(); });
+
+            // ---- Quick-add barang baru ----
+            var tambahModalEl = document.getElementById('modalTambahBarang');
+            var formBarang = document.getElementById('form-tambah-barang');
+            var errBox = document.getElementById('barang-error');
+
+            function escapeHtml(s) {
+                return String(s).replace(/[&<>"']/g, function (c) {
+                    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[c];
+                });
+            }
+
+            function tampilkanError(json) {
+                var pesan = [];
+                var errs = (json && json.errors) || {};
+                Object.keys(errs).forEach(function (k) { pesan = pesan.concat(errs[k]); });
+                if (!pesan.length) pesan = [(json && json.message) || 'Gagal menyimpan barang.'];
+                errBox.innerHTML = pesan.map(escapeHtml).join('<br>');
+                errBox.classList.remove('d-none');
+            }
+
+            tambahModalEl.addEventListener('shown.bs.modal', function () {
+                errBox.classList.add('d-none');
+                formBarang.querySelector('[name="nama_barang"]').focus();
+            });
+
+            formBarang.addEventListener('submit', function (e) {
+                e.preventDefault();
+                errBox.classList.add('d-none');
+
+                var token = form.querySelector('input[name="_token"]').value;
+                fetch('{{ route('logistik.barang.store') }}', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': token,
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    },
+                    body: new FormData(formBarang)
+                }).then(function (res) {
+                    return res.json().then(function (j) { return { ok: res.ok, json: j }; });
+                }).then(function (r) {
+                    if (!r.ok) {
+                        tampilkanError(r.json);
+                        return;
+                    }
+
+                    var data = r.json;
+                    var namaLengkap = data.kode_barang + ' - ' + data.nama_barang;
+
+                    var tr = document.createElement('tr');
+                    tr.dataset.id = data.id;
+                    tr.dataset.nama = namaLengkap;
+                    tr.dataset.satuan = data.satuan;
+                    tr.dataset.harga = '';
+                    tr.innerHTML = '<td class="td-kode">' + escapeHtml(data.kode_barang) + '</td>'
+                        + '<td class="fw-semibold">' + escapeHtml(data.nama_barang) + '</td>'
+                        + '<td class="text-center">' + escapeHtml(data.satuan) + '</td>'
+                        + '<td class="text-end">-</td>'
+                        + '<td class="text-center"><button type="button" class="btn btn-sm btn-primary btn-pilih">'
+                        + '<i class="fas fa-check me-1"></i> Pilih</button></td>';
+
+                    var tbodyModal = tabelModal.querySelector('tbody');
+                    var barisKosong = tbodyModal.querySelector('tr:not([data-id])');
+                    if (barisKosong) barisKosong.remove();
+                    tbodyModal.prepend(tr);
+
+                    if (activeRow) {
+                        pilihBarang(activeRow, { id: data.id, nama: namaLengkap, satuan: data.satuan, harga: '' });
+                    }
+
+                    bootstrap.Modal.getInstance(tambahModalEl).hide();
+                    bootstrap.Modal.getInstance(modalEl).hide();
+                    formBarang.reset();
+                }).catch(function () {
+                    errBox.textContent = 'Terjadi kesalahan koneksi.';
+                    errBox.classList.remove('d-none');
+                });
+            });
 
             document.getElementById('tambah-item').addEventListener('click', tambahRow);
 

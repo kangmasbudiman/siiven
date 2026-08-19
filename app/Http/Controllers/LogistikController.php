@@ -8,10 +8,12 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use App\Exports\LaporanLogistikExport;
 use App\Models\Barang;
+use App\Models\Kategoris;
 use App\Models\Kondisis;
 use App\Models\Ruangan;
 use App\Models\StockBarang;
 use App\Models\TransaksiStok;
+use App\Services\KodeBarangGenerator;
 
 class LogistikController extends Controller
 {
@@ -49,13 +51,41 @@ class LogistikController extends Controller
         }
 
         $barangs = Barang::where('is_active', 1)->orderBy('nama_barang')->get();
+        $kategoris = Kategoris::orderBy('nama_kategori')->get();
 
         // Harga terakhir di gudang untuk prefill harga satuan
         $hargaMap = StockBarang::where('ruangan_id', $ruangan->id)
             ->whereNotNull('harga')
             ->pluck('harga', 'barang_id');
 
-        return view('logistik.pemasukan', compact('barangs', 'ruangan', 'hargaMap'));
+        return view('logistik.pemasukan', compact('barangs', 'ruangan', 'hargaMap', 'kategoris'));
+    }
+
+    /**
+     * Shortcut tambah barang baru dari form pemasukan (AJAX, tanpa lewat master data admin).
+     */
+    public function storeBarangQuick(Request $request)
+    {
+        $validatedData = $request->validate([
+            'nama_barang' => 'required|string|max:255',
+            'kategori_id' => 'required|integer|exists:kategoris,id',
+            'jenis_barang' => 'required|string|max:255',
+            'merk' => 'required|string|max:255',
+            'spesifikasi' => 'required|string|max:255',
+            'satuan' => 'required|string|max:255',
+        ]);
+
+        $validatedData['kode_barang'] = KodeBarangGenerator::generate();
+        $validatedData['is_active'] = 1;
+
+        $barang = Barang::create($validatedData);
+
+        return response()->json([
+            'id' => $barang->id,
+            'kode_barang' => $barang->kode_barang,
+            'nama_barang' => $barang->nama_barang,
+            'satuan' => $barang->satuan,
+        ]);
     }
 
     /**
